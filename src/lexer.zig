@@ -21,58 +21,31 @@ pub fn nextToken(self: *Self) !Token {
 
     switch (self.ch) {
         0 => {
-            token = .{
-                .kind = Token.TokenKind.eof,
-                .literal = "",
-            };
+            token = Token.init(Token.TokenKind.eof, "");
         },
         '(' => {
-            token = .{
-                .kind = Token.TokenKind.left_paren,
-                .literal = self.input[self.position..self.read_position],
-            };
+            token = self.prepareCurrentToken(Token.TokenKind.left_paren);
         },
         ')' => {
-            token = .{
-                .kind = Token.TokenKind.right_paren,
-                .literal = self.input[self.position..self.read_position],
-            };
+            token = self.prepareCurrentToken(Token.TokenKind.right_paren);
         },
         '{' => {
-            token = .{
-                .kind = Token.TokenKind.left_brace,
-                .literal = self.input[self.position..self.read_position],
-            };
+            token = self.prepareCurrentToken(Token.TokenKind.left_brace);
         },
         '}' => {
-            token = .{
-                .kind = Token.TokenKind.right_brace,
-                .literal = self.input[self.position..self.read_position],
-            };
+            token = self.prepareCurrentToken(Token.TokenKind.right_brace);
         },
         '[' => {
-            token = .{
-                .kind = Token.TokenKind.left_bracket,
-                .literal = self.input[self.position..self.read_position],
-            };
+            token = self.prepareCurrentToken(Token.TokenKind.left_bracket);
         },
         ']' => {
-            token = .{
-                .kind = Token.TokenKind.right_bracket,
-                .literal = self.input[self.position..self.read_position],
-            };
+            token = self.prepareCurrentToken(Token.TokenKind.right_bracket);
         },
         '+' => {
-            token = .{
-                .kind = Token.TokenKind.plus,
-                .literal = self.input[self.position..self.read_position],
-            };
+            token = self.prepareCurrentToken(Token.TokenKind.plus);
         },
         '-' => {
-            token = .{
-                .kind = Token.TokenKind.minus,
-                .literal = self.input[self.position..self.read_position],
-            };
+            token = self.prepareCurrentToken(Token.TokenKind.minus);
         },
         else => {
             return error.InvalidToken;
@@ -98,6 +71,10 @@ fn skipWhiteSpace(self: *Self) void {
     while (self.ch == ' ' or self.ch == '\t' or self.ch == '\n' or self.ch == '\r') {
         self.takeChar();
     }
+}
+
+fn prepareCurrentToken(self: Self, kind: Token.TokenKind) Token {
+    return Token.init(kind, self.input[self.position..self.read_position]);
 }
 
 test "tokenize c" {
