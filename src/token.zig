@@ -38,6 +38,7 @@ pub const TokenKind = enum(u8) {
     comment_block_end,
 
     dot,
+    flip_operator,
 };
 
 kind: TokenKind,
