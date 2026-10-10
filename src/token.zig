@@ -36,6 +36,8 @@ pub const TokenKind = enum(u8) {
     comment,
     comment_block_start,
     comment_block_end,
+
+    dot,
 };
 
 kind: TokenKind,
