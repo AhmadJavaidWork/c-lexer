@@ -91,7 +91,7 @@ pub fn nextToken(self: *Self) !Token {
         '&' => {
             if (self.peekChar() == '&') {
                 self.takeChar();
-                token = Token.new(Token.TokenKind.and_condition, self.input[self.position - 1 .. self.read_position]);
+                token = Token.new(Token.TokenKind.and_operator, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.ampersand);
             }
@@ -160,7 +160,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.colon, .literal = ":" },
         .{ .kind = Token.TokenKind.bang, .literal = "!" },
         .{ .kind = Token.TokenKind.not_equal, .literal = "!=" },
-        .{ .kind = Token.TokenKind.and_condition, .literal = "&&" },
+        .{ .kind = Token.TokenKind.and_operator, .literal = "&&" },
         .{ .kind = Token.TokenKind.ampersand, .literal = "&" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };

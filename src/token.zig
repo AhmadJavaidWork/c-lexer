@@ -28,7 +28,7 @@ pub const TokenKind = enum(u8) {
     not_equal,
 
     ampersand,
-    and_condition,
+    and_operator,
 };
 
 kind: TokenKind,
