@@ -19,6 +19,7 @@ pub const TokenKind = enum(u8) {
     decrement,
 
     assign,
+    equal,
 };
 
 kind: TokenKind,
