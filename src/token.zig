@@ -43,6 +43,8 @@ pub const TokenKind = enum(u8) {
     percent,
     lt,
     gt,
+    gt_eq,
+    lt_eq,
     left_shift,
     right_shift,
 
@@ -50,7 +52,6 @@ pub const TokenKind = enum(u8) {
     double_quotes,
     single_quote,
     arrow,
-    lt_eq,
 };
 
 kind: TokenKind,
