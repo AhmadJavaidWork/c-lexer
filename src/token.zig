@@ -35,6 +35,7 @@ pub const TokenKind = enum(u8) {
     question_mark,
     colon,
     semicolon,
+    ellipsis,
     assign,
 
     comment,

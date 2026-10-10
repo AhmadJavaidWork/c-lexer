@@ -42,7 +42,17 @@ pub fn nextToken(self: *Self) !Token {
             token = self.prepareCurrentToken(Token.TokenKind.right_brace);
         },
         '.' => {
-            token = self.prepareCurrentToken(Token.TokenKind.dot);
+            if (self.peekChar() == '.') {
+                self.takeChar();
+                if (self.peekChar() == '.') {
+                    self.takeChar();
+                    token = Token.new(Token.TokenKind.ellipsis, self.input[self.position - 2 .. self.read_position]);
+                } else {
+                    return error.InvalidToken;
+                }
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.dot);
+            }
         },
         '-' => {
             if (self.peekChar() == '>') {
@@ -194,7 +204,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;=///**/
+        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=///**/
     );
 
     const expected_tokens = [_]Token{
@@ -231,6 +241,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.question_mark, .literal = "?" },
         .{ .kind = Token.TokenKind.colon, .literal = ":" },
         .{ .kind = Token.TokenKind.semicolon, .literal = ";" },
+        .{ .kind = Token.TokenKind.ellipsis, .literal = "..." },
         .{ .kind = Token.TokenKind.assign, .literal = "=" },
 
         .{ .kind = Token.TokenKind.comment, .literal = "//" },
