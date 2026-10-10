@@ -129,13 +129,18 @@ pub fn nextToken(self: *Self) !Token {
         '<' => {
             if (self.peekChar() == '<') {
                 self.takeChar();
-                token = Token.new(Token.TokenKind.left_shit, self.input[self.position - 1 .. self.read_position]);
+                token = Token.new(Token.TokenKind.left_shift, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.lt);
             }
         },
         '>' => {
-            token = self.prepareCurrentToken(Token.TokenKind.gt);
+            if (self.peekChar() == '>') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.right_shift, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.gt);
+            }
         },
         else => {
             return error.InvalidToken;
@@ -177,7 +182,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-* /\++--===;:!!=&&&|||///**/.~%<><<
+        \\ ({[]})+-* /\++--===;:!!=&&&|||///**/.~%<><<>>
     );
 
     const expected_tokens = [_]Token{
@@ -212,7 +217,8 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.percent, .literal = "%" },
         .{ .kind = Token.TokenKind.lt, .literal = "<" },
         .{ .kind = Token.TokenKind.gt, .literal = ">" },
-        .{ .kind = Token.TokenKind.left_shit, .literal = "<<" },
+        .{ .kind = Token.TokenKind.left_shift, .literal = "<<" },
+        .{ .kind = Token.TokenKind.right_shift, .literal = ">>" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
