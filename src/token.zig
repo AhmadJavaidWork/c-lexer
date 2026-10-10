@@ -16,6 +16,7 @@ pub const TokenKind = enum(u8) {
     forward_slash,
 
     increment,
+    decrement,
 };
 
 kind: TokenKind,
