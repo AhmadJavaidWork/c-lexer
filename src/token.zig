@@ -44,6 +44,7 @@ pub const TokenKind = enum(u8) {
     compound_subtraction,
     compound_left_shift,
     compound_right_shift,
+    compound_bitwise_and,
 
     comment,
     comment_block_start,

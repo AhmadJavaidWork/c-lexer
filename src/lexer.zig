@@ -83,6 +83,9 @@ pub fn nextToken(self: *Self) !Token {
             if (self.peekChar() == '&') {
                 self.takeChar();
                 token = Token.new(Token.TokenKind.and_operator, self.input[self.position - 1 .. self.read_position]);
+            } else if (self.peekChar() == '=') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.compound_bitwise_and, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.ampersand);
             }
@@ -231,7 +234,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=///**/
+        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=///**/
     );
 
     const expected_tokens = [_]Token{
@@ -277,6 +280,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.compound_subtraction, .literal = "-=" },
         .{ .kind = Token.TokenKind.compound_left_shift, .literal = "<<=" },
         .{ .kind = Token.TokenKind.compound_right_shift, .literal = ">>=" },
+        .{ .kind = Token.TokenKind.compound_bitwise_and, .literal = "&=" },
 
         .{ .kind = Token.TokenKind.comment, .literal = "//" },
         .{ .kind = Token.TokenKind.comment_block_start, .literal = "/*" },
