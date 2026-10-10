@@ -12,6 +12,7 @@ pub const TokenKind = enum(u8) {
     plus,
     minus,
     asterisk,
+    back_slash,
 };
 
 kind: TokenKind,

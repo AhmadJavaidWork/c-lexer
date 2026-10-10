@@ -50,6 +50,9 @@ pub fn nextToken(self: *Self) !Token {
         '*' => {
             token = self.prepareCurrentToken(Token.TokenKind.asterisk);
         },
+        '/' => {
+            token = self.prepareCurrentToken(Token.TokenKind.back_slash);
+        },
         else => {
             return error.InvalidToken;
         },
@@ -82,7 +85,7 @@ fn prepareCurrentToken(self: Self, kind: Token.TokenKind) Token {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-*
+        \\ ({[]})+-*/
     );
 
     const expected_tokens = [_]Token{
@@ -95,6 +98,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.plus, .literal = "+" },
         .{ .kind = Token.TokenKind.minus, .literal = "-" },
         .{ .kind = Token.TokenKind.asterisk, .literal = "*" },
+        .{ .kind = Token.TokenKind.back_slash, .literal = "/" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
