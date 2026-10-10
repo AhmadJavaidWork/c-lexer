@@ -18,6 +18,10 @@ literal: []const u8,
 
 const Self = @This();
 
+pub fn init(kind: TokenKind, literal: []const u8) Self {
+    return .{ .kind = kind, .literal = literal };
+}
+
 pub fn format(self: *const Self, writer: *std.Io.Writer) !void {
     try writer.print("Token: {{ kind: {any}, literal: {s} }}", .{ self.kind, self.literal });
 }
