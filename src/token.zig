@@ -48,6 +48,7 @@ pub const TokenKind = enum(u8) {
 
     caret,
     double_quotes,
+    single_quote,
 };
 
 kind: TokenKind,
