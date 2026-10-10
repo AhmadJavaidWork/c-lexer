@@ -37,10 +37,11 @@ pub const TokenKind = enum(u8) {
     semicolon,
     ellipsis,
     assign,
-    compound_multiply,
+    compound_multiplication,
     compound_division,
     compound_modulo,
     compound_addition,
+    compound_subtraction,
 
     comment,
     comment_block_start,
