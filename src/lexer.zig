@@ -21,7 +21,7 @@ pub fn nextToken(self: *Self) !Token {
 
     switch (self.ch) {
         0 => {
-            token = Token.init(Token.TokenKind.eof, "");
+            token = Token.new(Token.TokenKind.eof, "");
         },
         '(' => {
             token = self.prepareCurrentToken(Token.TokenKind.left_paren);
@@ -44,7 +44,7 @@ pub fn nextToken(self: *Self) !Token {
         '+' => {
             if (self.peekChar() == '+') {
                 self.takeChar();
-                token = Token.init(Token.TokenKind.increment, self.input[self.position - 1 .. self.read_position]);
+                token = Token.new(Token.TokenKind.increment, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.plus);
             }
@@ -52,7 +52,7 @@ pub fn nextToken(self: *Self) !Token {
         '-' => {
             if (self.peekChar() == '-') {
                 self.takeChar();
-                token = Token.init(Token.TokenKind.decrement, self.input[self.position - 1 .. self.read_position]);
+                token = Token.new(Token.TokenKind.decrement, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.minus);
             }
@@ -69,7 +69,7 @@ pub fn nextToken(self: *Self) !Token {
         '=' => {
             if (self.peekChar() == '=') {
                 self.takeChar();
-                token = Token.init(Token.TokenKind.equal, self.input[self.position - 1 .. self.read_position]);
+                token = Token.new(Token.TokenKind.equal, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.assign);
             }
@@ -83,13 +83,18 @@ pub fn nextToken(self: *Self) !Token {
         '!' => {
             if (self.peekChar() == '=') {
                 self.takeChar();
-                token = Token.init(Token.TokenKind.not_equal, self.input[self.position - 1 .. self.read_position]);
+                token = Token.new(Token.TokenKind.not_equal, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.bang);
             }
         },
         '&' => {
-            token = self.prepareCurrentToken(Token.TokenKind.ampersand);
+            if (self.peekChar() == '&') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.and_condition, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.ampersand);
+            }
         },
 
         else => {
@@ -119,7 +124,7 @@ fn skipWhiteSpace(self: *Self) void {
 }
 
 fn prepareCurrentToken(self: Self, kind: Token.TokenKind) Token {
-    return Token.init(kind, self.input[self.position..self.read_position]);
+    return Token.new(kind, self.input[self.position..self.read_position]);
 }
 
 fn peekChar(self: *Self) u8 {
@@ -132,7 +137,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-*/\++--===;:!!=&
+        \\ ({[]})+-*/\++--===;:!!=&&&
     );
 
     const expected_tokens = [_]Token{
@@ -155,6 +160,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.colon, .literal = ":" },
         .{ .kind = Token.TokenKind.bang, .literal = "!" },
         .{ .kind = Token.TokenKind.not_equal, .literal = "!=" },
+        .{ .kind = Token.TokenKind.and_condition, .literal = "&&" },
         .{ .kind = Token.TokenKind.ampersand, .literal = "&" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };

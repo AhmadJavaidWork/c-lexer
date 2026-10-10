@@ -26,7 +26,9 @@ pub const TokenKind = enum(u8) {
 
     bang,
     not_equal,
+
     ampersand,
+    and_condition,
 };
 
 kind: TokenKind,
@@ -34,7 +36,7 @@ literal: []const u8,
 
 const Self = @This();
 
-pub fn init(kind: TokenKind, literal: []const u8) Self {
+pub fn new(kind: TokenKind, literal: []const u8) Self {
     return .{ .kind = kind, .literal = literal };
 }
 
