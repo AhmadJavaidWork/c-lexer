@@ -34,6 +34,7 @@ pub const TokenKind = enum(u8) {
     or_operator,
 
     comment,
+    comment_block_start,
 };
 
 kind: TokenKind,
