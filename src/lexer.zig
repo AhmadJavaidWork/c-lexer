@@ -133,6 +133,9 @@ pub fn nextToken(self: *Self) !Token {
             if (self.peekChar() == '<') {
                 self.takeChar();
                 token = Token.new(Token.TokenKind.left_shift, self.input[self.position - 1 .. self.read_position]);
+            } else if (self.peekChar() == '=') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.lt_eq, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.lt);
             }
@@ -194,7 +197,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-* /\++--===;:!!=&&&|||///**/.~%<><<>>^"'->
+        \\ ({[]})+-* /\++--===;:!!=&&&|||///**/.~%<><<>>^"'-><=
     );
 
     const expected_tokens = [_]Token{
@@ -235,6 +238,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.double_quotes, .literal = "\"" },
         .{ .kind = Token.TokenKind.single_quote, .literal = "'" },
         .{ .kind = Token.TokenKind.arrow, .literal = "->" },
+        .{ .kind = Token.TokenKind.lt_eq, .literal = "<=" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
