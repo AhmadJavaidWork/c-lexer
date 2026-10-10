@@ -79,9 +79,6 @@ pub fn nextToken(self: *Self) !Token {
                 token = self.prepareCurrentToken(Token.TokenKind.back_slash);
             }
         },
-        '\\' => {
-            token = self.prepareCurrentToken(Token.TokenKind.forward_slash);
-        },
         '=' => {
             if (self.peekChar() == '=') {
                 self.takeChar();
@@ -154,12 +151,6 @@ pub fn nextToken(self: *Self) !Token {
         '^' => {
             token = self.prepareCurrentToken(Token.TokenKind.caret);
         },
-        '"' => {
-            token = self.prepareCurrentToken(Token.TokenKind.double_quotes);
-        },
-        '\'' => {
-            token = self.prepareCurrentToken(Token.TokenKind.single_quote);
-        },
         else => {
             return error.InvalidToken;
         },
@@ -200,7 +191,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-* /\++--===;:!!=&&&|||///**/.~%<><<>>^"'-><=>=
+        \\ ({[]})+-* /++--===;:!!=&&&|||///**/.~%<><<>>^-><=>=
     );
 
     const expected_tokens = [_]Token{
@@ -214,7 +205,6 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.minus, .literal = "-" },
         .{ .kind = Token.TokenKind.asterisk, .literal = "*" },
         .{ .kind = Token.TokenKind.back_slash, .literal = "/" },
-        .{ .kind = Token.TokenKind.forward_slash, .literal = "\\" },
         .{ .kind = Token.TokenKind.increment, .literal = "++" },
         .{ .kind = Token.TokenKind.decrement, .literal = "--" },
         .{ .kind = Token.TokenKind.equal, .literal = "==" },
@@ -238,8 +228,6 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.left_shift, .literal = "<<" },
         .{ .kind = Token.TokenKind.right_shift, .literal = ">>" },
         .{ .kind = Token.TokenKind.caret, .literal = "^" },
-        .{ .kind = Token.TokenKind.double_quotes, .literal = "\"" },
-        .{ .kind = Token.TokenKind.single_quote, .literal = "'" },
         .{ .kind = Token.TokenKind.arrow, .literal = "->" },
         .{ .kind = Token.TokenKind.lt_eq, .literal = "<=" },
         .{ .kind = Token.TokenKind.gt_eq, .literal = ">=" },
