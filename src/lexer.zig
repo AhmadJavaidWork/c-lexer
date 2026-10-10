@@ -66,6 +66,9 @@ pub fn nextToken(self: *Self) !Token {
         '\\' => {
             token = self.prepareCurrentToken(Token.TokenKind.forward_slash);
         },
+        '=' => {
+            token = self.prepareCurrentToken(Token.TokenKind.assign);
+        },
         else => {
             return error.InvalidToken;
         },
@@ -106,7 +109,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-*/\++--
+        \\ ({[]})+-*/\++--=
     );
 
     const expected_tokens = [_]Token{
@@ -123,6 +126,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.forward_slash, .literal = "\\" },
         .{ .kind = Token.TokenKind.increment, .literal = "++" },
         .{ .kind = Token.TokenKind.decrement, .literal = "--" },
+        .{ .kind = Token.TokenKind.assign, .literal = "=" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
