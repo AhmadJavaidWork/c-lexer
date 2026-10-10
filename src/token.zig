@@ -29,6 +29,8 @@ pub const TokenKind = enum(u8) {
 
     ampersand,
     and_operator,
+
+    pipe,
 };
 
 kind: TokenKind,
