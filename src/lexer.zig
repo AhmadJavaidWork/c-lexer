@@ -42,7 +42,12 @@ pub fn nextToken(self: *Self) !Token {
             token = self.prepareCurrentToken(Token.TokenKind.right_bracket);
         },
         '+' => {
-            token = self.prepareCurrentToken(Token.TokenKind.plus);
+            if (self.peekChar() == '+') {
+                self.takeChar();
+                token = Token.init(Token.TokenKind.increment, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.plus);
+            }
         },
         '-' => {
             token = self.prepareCurrentToken(Token.TokenKind.minus);
@@ -86,9 +91,17 @@ fn prepareCurrentToken(self: Self, kind: Token.TokenKind) Token {
     return Token.init(kind, self.input[self.position..self.read_position]);
 }
 
+fn peekChar(self: *Self) u8 {
+    if (self.read_position >= self.input.len) {
+        return 0;
+    } else {
+        return self.input[self.read_position];
+    }
+}
+
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-*/\
+        \\ ({[]})+-*/\++
     );
 
     const expected_tokens = [_]Token{
@@ -103,6 +116,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.asterisk, .literal = "*" },
         .{ .kind = Token.TokenKind.back_slash, .literal = "/" },
         .{ .kind = Token.TokenKind.forward_slash, .literal = "\\" },
+        .{ .kind = Token.TokenKind.increment, .literal = "++" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
