@@ -97,7 +97,12 @@ pub fn nextToken(self: *Self) !Token {
             }
         },
         '|' => {
-            token = self.prepareCurrentToken(Token.TokenKind.pipe);
+            if (self.peekChar() == '|') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.or_operator, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.pipe);
+            }
         },
         else => {
             return error.InvalidToken;
@@ -139,7 +144,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-*/\++--===;:!!=&&&|
+        \\ ({[]})+-*/\++--===;:!!=&&&|||
     );
 
     const expected_tokens = [_]Token{
@@ -164,6 +169,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.not_equal, .literal = "!=" },
         .{ .kind = Token.TokenKind.and_operator, .literal = "&&" },
         .{ .kind = Token.TokenKind.ampersand, .literal = "&" },
+        .{ .kind = Token.TokenKind.or_operator, .literal = "||" },
         .{ .kind = Token.TokenKind.pipe, .literal = "|" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
