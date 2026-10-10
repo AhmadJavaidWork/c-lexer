@@ -118,7 +118,12 @@ pub fn nextToken(self: *Self) !Token {
             }
         },
         '%' => {
-            token = self.prepareCurrentToken(Token.TokenKind.percent);
+            if (self.peekChar() == '=') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.compound_modulo, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.percent);
+            }
         },
         '<' => {
             if (self.peekChar() == '<') {
@@ -210,7 +215,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=///**/
+        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=///**/
     );
 
     const expected_tokens = [_]Token{
@@ -251,6 +256,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.assign, .literal = "=" },
         .{ .kind = Token.TokenKind.compound_multiply, .literal = "*=" },
         .{ .kind = Token.TokenKind.compound_division, .literal = "/=" },
+        .{ .kind = Token.TokenKind.compound_modulo, .literal = "%=" },
 
         .{ .kind = Token.TokenKind.comment, .literal = "//" },
         .{ .kind = Token.TokenKind.comment_block_start, .literal = "/*" },
