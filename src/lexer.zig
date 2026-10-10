@@ -123,6 +123,9 @@ pub fn nextToken(self: *Self) !Token {
         '~' => {
             token = self.prepareCurrentToken(Token.TokenKind.flip_operator);
         },
+        '%' => {
+            token = self.prepareCurrentToken(Token.TokenKind.percent);
+        },
         else => {
             return error.InvalidToken;
         },
@@ -163,7 +166,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-* /\++--===;:!!=&&&|||///**/.~
+        \\ ({[]})+-* /\++--===;:!!=&&&|||///**/.~%
     );
 
     const expected_tokens = [_]Token{
@@ -195,6 +198,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.comment_block_end, .literal = "*/" },
         .{ .kind = Token.TokenKind.dot, .literal = "." },
         .{ .kind = Token.TokenKind.flip_operator, .literal = "~" },
+        .{ .kind = Token.TokenKind.percent, .literal = "%" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 

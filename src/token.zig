@@ -39,6 +39,8 @@ pub const TokenKind = enum(u8) {
 
     dot,
     flip_operator,
+
+    percent,
 };
 
 kind: TokenKind,
