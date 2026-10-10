@@ -42,6 +42,7 @@ pub const TokenKind = enum(u8) {
 
     percent,
     lt,
+    gt,
 };
 
 kind: TokenKind,
