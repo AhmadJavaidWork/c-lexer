@@ -25,6 +25,7 @@ pub const TokenKind = enum(u8) {
     colon,
 
     bang,
+    not_equal,
 };
 
 kind: TokenKind,
