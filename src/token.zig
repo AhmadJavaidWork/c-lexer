@@ -20,6 +20,8 @@ pub const TokenKind = enum(u8) {
 
     assign,
     equal,
+
+    semicolon,
 };
 
 kind: TokenKind,
