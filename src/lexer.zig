@@ -134,7 +134,12 @@ pub fn nextToken(self: *Self) !Token {
         '<' => {
             if (self.peekChar() == '<') {
                 self.takeChar();
-                token = Token.new(Token.TokenKind.left_shift, self.input[self.position - 1 .. self.read_position]);
+                if (self.peekChar() == '=') {
+                    self.takeChar();
+                    token = Token.new(Token.TokenKind.compound_left_shift, self.input[self.position - 2 .. self.read_position]);
+                } else {
+                    token = Token.new(Token.TokenKind.left_shift, self.input[self.position - 1 .. self.read_position]);
+                }
             } else if (self.peekChar() == '=') {
                 self.takeChar();
                 token = Token.new(Token.TokenKind.lt_eq, self.input[self.position - 1 .. self.read_position]);
@@ -221,7 +226,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=///**/
+        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=///**/
     );
 
     const expected_tokens = [_]Token{
@@ -265,6 +270,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.compound_modulo, .literal = "%=" },
         .{ .kind = Token.TokenKind.compound_addition, .literal = "+=" },
         .{ .kind = Token.TokenKind.compound_subtraction, .literal = "-=" },
+        .{ .kind = Token.TokenKind.compound_left_shift, .literal = "<<=" },
 
         .{ .kind = Token.TokenKind.comment, .literal = "//" },
         .{ .kind = Token.TokenKind.comment_block_start, .literal = "/*" },
