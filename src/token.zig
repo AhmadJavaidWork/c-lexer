@@ -45,6 +45,8 @@ pub const TokenKind = enum(u8) {
     gt,
     left_shift,
     right_shift,
+
+    carrot,
 };
 
 kind: TokenKind,
