@@ -23,6 +23,12 @@ pub fn nextToken(self: *Self) !Token {
         0 => {
             token = Token.new(Token.TokenKind.eof, "");
         },
+        '[' => {
+            token = self.prepareCurrentToken(Token.TokenKind.left_bracket);
+        },
+        ']' => {
+            token = self.prepareCurrentToken(Token.TokenKind.right_bracket);
+        },
         '(' => {
             token = self.prepareCurrentToken(Token.TokenKind.left_paren);
         },
@@ -35,11 +41,19 @@ pub fn nextToken(self: *Self) !Token {
         '}' => {
             token = self.prepareCurrentToken(Token.TokenKind.right_brace);
         },
-        '[' => {
-            token = self.prepareCurrentToken(Token.TokenKind.left_bracket);
+        '.' => {
+            token = self.prepareCurrentToken(Token.TokenKind.dot);
         },
-        ']' => {
-            token = self.prepareCurrentToken(Token.TokenKind.right_bracket);
+        '-' => {
+            if (self.peekChar() == '>') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.arrow, self.input[self.position - 1 .. self.read_position]);
+            } else if (self.peekChar() == '-') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.decrement, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.minus);
+            }
         },
         '+' => {
             if (self.peekChar() == '+') {
@@ -49,15 +63,12 @@ pub fn nextToken(self: *Self) !Token {
                 token = self.prepareCurrentToken(Token.TokenKind.plus);
             }
         },
-        '-' => {
-            if (self.peekChar() == '-') {
+        '&' => {
+            if (self.peekChar() == '&') {
                 self.takeChar();
-                token = Token.new(Token.TokenKind.decrement, self.input[self.position - 1 .. self.read_position]);
-            } else if (self.peekChar() == '>') {
-                self.takeChar();
-                token = Token.new(Token.TokenKind.arrow, self.input[self.position - 1 .. self.read_position]);
+                token = Token.new(Token.TokenKind.and_operator, self.input[self.position - 1 .. self.read_position]);
             } else {
-                token = self.prepareCurrentToken(Token.TokenKind.minus);
+                token = self.prepareCurrentToken(Token.TokenKind.ampersand);
             }
         },
         '*' => {
@@ -66,6 +77,17 @@ pub fn nextToken(self: *Self) !Token {
                 token = Token.new(Token.TokenKind.comment_block_end, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.asterisk);
+            }
+        },
+        '~' => {
+            token = self.prepareCurrentToken(Token.TokenKind.flip_operator);
+        },
+        '!' => {
+            if (self.peekChar() == '=') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.not_equal, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.bang);
             }
         },
         '/' => {
@@ -78,50 +100,6 @@ pub fn nextToken(self: *Self) !Token {
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.back_slash);
             }
-        },
-        '=' => {
-            if (self.peekChar() == '=') {
-                self.takeChar();
-                token = Token.new(Token.TokenKind.equal, self.input[self.position - 1 .. self.read_position]);
-            } else {
-                token = self.prepareCurrentToken(Token.TokenKind.assign);
-            }
-        },
-        ';' => {
-            token = self.prepareCurrentToken(Token.TokenKind.semicolon);
-        },
-        ':' => {
-            token = self.prepareCurrentToken(Token.TokenKind.colon);
-        },
-        '!' => {
-            if (self.peekChar() == '=') {
-                self.takeChar();
-                token = Token.new(Token.TokenKind.not_equal, self.input[self.position - 1 .. self.read_position]);
-            } else {
-                token = self.prepareCurrentToken(Token.TokenKind.bang);
-            }
-        },
-        '&' => {
-            if (self.peekChar() == '&') {
-                self.takeChar();
-                token = Token.new(Token.TokenKind.and_operator, self.input[self.position - 1 .. self.read_position]);
-            } else {
-                token = self.prepareCurrentToken(Token.TokenKind.ampersand);
-            }
-        },
-        '|' => {
-            if (self.peekChar() == '|') {
-                self.takeChar();
-                token = Token.new(Token.TokenKind.or_operator, self.input[self.position - 1 .. self.read_position]);
-            } else {
-                token = self.prepareCurrentToken(Token.TokenKind.pipe);
-            }
-        },
-        '.' => {
-            token = self.prepareCurrentToken(Token.TokenKind.dot);
-        },
-        '~' => {
-            token = self.prepareCurrentToken(Token.TokenKind.flip_operator);
         },
         '%' => {
             token = self.prepareCurrentToken(Token.TokenKind.percent);
@@ -148,11 +126,33 @@ pub fn nextToken(self: *Self) !Token {
                 token = self.prepareCurrentToken(Token.TokenKind.gt);
             }
         },
+        '=' => {
+            if (self.peekChar() == '=') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.equal, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.assign);
+            }
+        },
         '^' => {
             token = self.prepareCurrentToken(Token.TokenKind.caret);
         },
+        '|' => {
+            if (self.peekChar() == '|') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.or_operator, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.pipe);
+            }
+        },
         '?' => {
             token = self.prepareCurrentToken(Token.TokenKind.question_mark);
+        },
+        ':' => {
+            token = self.prepareCurrentToken(Token.TokenKind.colon);
+        },
+        ';' => {
+            token = self.prepareCurrentToken(Token.TokenKind.semicolon);
         },
         else => {
             return error.InvalidToken;
