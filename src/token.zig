@@ -2,12 +2,12 @@ const std = @import("std");
 
 pub const TokenKind = enum(u8) {
     eof,
-    left_bracket,
-    right_bracket,
-    left_paren,
-    right_paren,
-    left_brace,
-    right_brace,
+    open_bracket,
+    close_bracket,
+    open_paren,
+    close_paren,
+    open_brace,
+    close_brace,
     dot,
     arrow,
     increment,
