@@ -32,6 +32,8 @@ pub const TokenKind = enum(u8) {
 
     pipe,
     or_operator,
+
+    comment,
 };
 
 kind: TokenKind,
