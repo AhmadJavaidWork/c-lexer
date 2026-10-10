@@ -62,6 +62,12 @@ pub fn nextToken(self: *Self) !Token {
                 .literal = self.input[self.position..self.read_position],
             };
         },
+        '+' => {
+            token = .{
+                .kind = Token.TokenKind.plus,
+                .literal = self.input[self.position..self.read_position],
+            };
+        },
         else => {
             return error.InvalidToken;
         },
@@ -90,7 +96,7 @@ fn skipWhiteSpace(self: *Self) void {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})
+        \\ ({[]})+
     );
 
     const expected_tokens = [_]Token{
@@ -100,6 +106,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.right_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.right_brace, .literal = "}" },
         .{ .kind = Token.TokenKind.right_paren, .literal = ")" },
+        .{ .kind = Token.TokenKind.plus, .literal = "+" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
