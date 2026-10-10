@@ -24,22 +24,22 @@ pub fn nextToken(self: *Self) !Token {
             token = Token.new(Token.TokenKind.eof, "");
         },
         '[' => {
-            token = self.prepareCurrentToken(Token.TokenKind.left_bracket);
+            token = self.prepareCurrentToken(Token.TokenKind.open_bracket);
         },
         ']' => {
-            token = self.prepareCurrentToken(Token.TokenKind.right_bracket);
+            token = self.prepareCurrentToken(Token.TokenKind.close_bracket);
         },
         '(' => {
-            token = self.prepareCurrentToken(Token.TokenKind.left_paren);
+            token = self.prepareCurrentToken(Token.TokenKind.open_paren);
         },
         ')' => {
-            token = self.prepareCurrentToken(Token.TokenKind.right_paren);
+            token = self.prepareCurrentToken(Token.TokenKind.close_paren);
         },
         '{' => {
-            token = self.prepareCurrentToken(Token.TokenKind.left_brace);
+            token = self.prepareCurrentToken(Token.TokenKind.open_brace);
         },
         '}' => {
-            token = self.prepareCurrentToken(Token.TokenKind.right_brace);
+            token = self.prepareCurrentToken(Token.TokenKind.close_brace);
         },
         '.' => {
             if (self.peekChar() == '.') {
@@ -148,7 +148,7 @@ pub fn nextToken(self: *Self) !Token {
                 token = Token.new(Token.TokenKind.lt_eq, self.input[self.position - 1 .. self.read_position]);
             } else if (self.peekChar() == ':') {
                 self.takeChar();
-                token = Token.new(Token.TokenKind.left_bracket, self.input[self.position - 1 .. self.read_position]);
+                token = Token.new(Token.TokenKind.open_bracket, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.lt);
             }
@@ -249,12 +249,12 @@ test "tokenize c" {
     );
 
     const expected_tokens = [_]Token{
-        .{ .kind = Token.TokenKind.left_bracket, .literal = "[" },
-        .{ .kind = Token.TokenKind.right_bracket, .literal = "]" },
-        .{ .kind = Token.TokenKind.left_paren, .literal = "(" },
-        .{ .kind = Token.TokenKind.right_paren, .literal = ")" },
-        .{ .kind = Token.TokenKind.left_brace, .literal = "{" },
-        .{ .kind = Token.TokenKind.right_brace, .literal = "}" },
+        .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
+        .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
+        .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
+        .{ .kind = Token.TokenKind.close_paren, .literal = ")" },
+        .{ .kind = Token.TokenKind.open_brace, .literal = "{" },
+        .{ .kind = Token.TokenKind.close_brace, .literal = "}" },
         .{ .kind = Token.TokenKind.dot, .literal = "." },
         .{ .kind = Token.TokenKind.arrow, .literal = "->" },
         .{ .kind = Token.TokenKind.increment, .literal = "++" },
@@ -294,7 +294,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.compound_bitwise_and, .literal = "&=" },
         .{ .kind = Token.TokenKind.compound_bitwise_xor, .literal = "^=" },
         .{ .kind = Token.TokenKind.compound_bitwise_or, .literal = "|=" },
-        .{ .kind = Token.TokenKind.left_bracket, .literal = "<:" },
+        .{ .kind = Token.TokenKind.open_bracket, .literal = "<:" },
 
         .{ .kind = Token.TokenKind.comment, .literal = "//" },
         .{ .kind = Token.TokenKind.comment_block_start, .literal = "/*" },
