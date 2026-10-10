@@ -2,56 +2,43 @@ const std = @import("std");
 
 pub const TokenKind = enum(u8) {
     eof,
+    left_bracket,
+    right_bracket,
     left_paren,
     right_paren,
     left_brace,
     right_brace,
-    left_bracket,
-    right_bracket,
-
-    plus,
-    minus,
-    asterisk,
-    back_slash,
-    forward_slash,
-
+    dot,
+    arrow,
     increment,
     decrement,
-
-    assign,
-    equal,
-
-    semicolon,
-    colon,
-
-    bang,
-    not_equal,
-
     ampersand,
-    and_operator,
-
+    asterisk,
+    plus,
+    minus,
+    flip_operator,
+    bang,
+    back_slash,
+    percent,
+    left_shift,
+    right_shift,
+    lt,
+    gt,
+    lt_eq,
+    gt_eq,
+    equal,
+    not_equal,
+    caret,
     pipe,
+    and_operator,
     or_operator,
+    colon,
+    semicolon,
+    assign,
 
     comment,
     comment_block_start,
     comment_block_end,
-
-    dot,
-    flip_operator,
-
-    percent,
-    lt,
-    gt,
-    gt_eq,
-    lt_eq,
-    left_shift,
-    right_shift,
-
-    caret,
-    double_quotes,
-    single_quote,
-    arrow,
 };
 
 kind: TokenKind,
