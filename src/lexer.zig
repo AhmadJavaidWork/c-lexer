@@ -143,7 +143,7 @@ pub fn nextToken(self: *Self) !Token {
             }
         },
         '^' => {
-            token = self.prepareCurrentToken(Token.TokenKind.carrot);
+            token = self.prepareCurrentToken(Token.TokenKind.caret);
         },
         else => {
             return error.InvalidToken;
@@ -222,7 +222,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.gt, .literal = ">" },
         .{ .kind = Token.TokenKind.left_shift, .literal = "<<" },
         .{ .kind = Token.TokenKind.right_shift, .literal = ">>" },
-        .{ .kind = Token.TokenKind.carrot, .literal = "^" },
+        .{ .kind = Token.TokenKind.caret, .literal = "^" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
