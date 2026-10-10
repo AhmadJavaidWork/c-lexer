@@ -32,6 +32,7 @@ pub const TokenKind = enum(u8) {
     pipe,
     and_operator,
     or_operator,
+    question_mark,
     colon,
     semicolon,
     assign,
