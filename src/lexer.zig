@@ -58,7 +58,12 @@ pub fn nextToken(self: *Self) !Token {
             }
         },
         '*' => {
-            token = self.prepareCurrentToken(Token.TokenKind.asterisk);
+            if (self.peekChar() == '/') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.comment_block_end, self.input[self.position - 1 .. self.read_position]);
+            } else {
+                token = self.prepareCurrentToken(Token.TokenKind.asterisk);
+            }
         },
         '/' => {
             if (self.peekChar() == '/') {
@@ -152,7 +157,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ ({[]})+-*/\++--===;:!!=&&&|||///*
+        \\ ({[]})+-* /\++--===;:!!=&&&|||///**/
     );
 
     const expected_tokens = [_]Token{
@@ -181,6 +186,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.pipe, .literal = "|" },
         .{ .kind = Token.TokenKind.comment, .literal = "//" },
         .{ .kind = Token.TokenKind.comment_block_start, .literal = "/*" },
+        .{ .kind = Token.TokenKind.comment_block_end, .literal = "*/" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
