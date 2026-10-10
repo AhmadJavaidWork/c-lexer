@@ -10,6 +10,7 @@ pub const TokenKind = enum(u8) {
     right_bracket,
 
     plus,
+    minus,
 };
 
 kind: TokenKind,
