@@ -8,6 +8,8 @@ pub const TokenKind = enum(u8) {
     right_brace,
     left_bracket,
     right_bracket,
+
+    plus,
 };
 
 kind: TokenKind,
