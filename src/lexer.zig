@@ -110,6 +110,9 @@ pub fn nextToken(self: *Self) !Token {
             } else if (self.peekChar() == '*') {
                 self.takeChar();
                 token = Token.new(Token.TokenKind.comment_block_start, self.input[self.position - 1 .. self.read_position]);
+            } else if (self.peekChar() == '=') {
+                self.takeChar();
+                token = Token.new(Token.TokenKind.compound_division, self.input[self.position - 1 .. self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.back_slash);
             }
@@ -207,7 +210,7 @@ fn peekChar(self: *Self) u8 {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=///**/
+        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=///**/
     );
 
     const expected_tokens = [_]Token{
@@ -247,6 +250,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.ellipsis, .literal = "..." },
         .{ .kind = Token.TokenKind.assign, .literal = "=" },
         .{ .kind = Token.TokenKind.compound_multiply, .literal = "*=" },
+        .{ .kind = Token.TokenKind.compound_division, .literal = "/=" },
 
         .{ .kind = Token.TokenKind.comment, .literal = "//" },
         .{ .kind = Token.TokenKind.comment_block_start, .literal = "/*" },
