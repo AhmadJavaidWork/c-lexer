@@ -218,6 +218,11 @@ pub fn nextToken(self: *Self) !Token {
         ';' => {
             token = self.prepareCurrentToken(Token.TokenKind.semicolon);
         },
+        '0' => {
+            const start: usize = self.position;
+            self.takeOctal();
+            token = Token.new(Token.TokenKind.octal_number, self.input[start..self.read_position]);
+        },
         else => {
             if (utils.isLetter(self.ch) or self.ch == '_') {
                 const start: usize = self.position;
@@ -285,6 +290,12 @@ fn takeNumber(self: *Self) void {
     }
 }
 
+fn takeOctal(self: *Self) void {
+    while (utils.isOctalDigit(self.peekChar())) {
+        self.takeChar();
+    }
+}
+
 test "tokenize c" {
     var l: Self = Self.init(
         \\ auto break case char const continue
@@ -294,7 +305,7 @@ test "tokenize c" {
         \\ sizeof static struct switch typedef
         \\ union unsigned void volatile while
         \\ _Bool _Complex _Imaginary a a0 _a0 a_0
-        \\ __func__ 1234
+        \\ __func__ 1234 01234
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -342,6 +353,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.ident, .literal = "a_0" },
         .{ .kind = Token.TokenKind.func, .literal = "__func__" },
         .{ .kind = Token.TokenKind.decimal_number, .literal = "1234" },
+        .{ .kind = Token.TokenKind.octal_number, .literal = "01234" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
