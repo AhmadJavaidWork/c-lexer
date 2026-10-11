@@ -77,6 +77,7 @@ pub const TokenKind = enum(u8) {
     restrict,
     return_kw,
     short,
+    signed,
 };
 
 kind: TokenKind,
