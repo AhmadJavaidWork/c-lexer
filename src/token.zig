@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub const TokenKind = enum(u8) {
+    // punctuators
     eof,
     open_bracket,
     close_bracket,
@@ -51,6 +52,9 @@ pub const TokenKind = enum(u8) {
     comment,
     comment_block_start,
     comment_block_end,
+
+    // keywords
+    auto,
 };
 
 kind: TokenKind,
@@ -64,4 +68,8 @@ pub fn new(kind: TokenKind, literal: []const u8) Self {
 
 pub fn format(self: *const Self, writer: *std.Io.Writer) !void {
     try writer.print("Token: {{ kind: {any}, literal: {s} }}", .{ self.kind, self.literal });
+}
+
+pub fn keywordToTokenKind(keyword: []const u8) !TokenKind {
+    return std.meta.stringToEnum(TokenKind, keyword) orelse return error.InvalidToken;
 }
