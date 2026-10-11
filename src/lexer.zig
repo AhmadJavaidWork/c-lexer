@@ -220,8 +220,14 @@ pub fn nextToken(self: *Self) !Token {
         },
         '0' => {
             const start: usize = self.position;
-            self.takeOctal();
-            token = Token.new(Token.TokenKind.octal_number, self.input[start..self.read_position]);
+            if (self.peekChar() == 'x' or self.peekChar() == 'X') {
+                self.takeChar();
+                self.takeHexadecimal();
+                token = Token.new(Token.TokenKind.hex_number, self.input[start..self.read_position]);
+            } else {
+                self.takeOctal();
+                token = Token.new(Token.TokenKind.octal_number, self.input[start..self.read_position]);
+            }
         },
         else => {
             if (utils.isLetter(self.ch) or self.ch == '_') {
@@ -296,6 +302,12 @@ fn takeOctal(self: *Self) void {
     }
 }
 
+fn takeHexadecimal(self: *Self) void {
+    while (utils.isHexadecimalDigit(self.peekChar())) {
+        self.takeChar();
+    }
+}
+
 test "tokenize c" {
     var l: Self = Self.init(
         \\ auto break case char const continue
@@ -305,7 +317,7 @@ test "tokenize c" {
         \\ sizeof static struct switch typedef
         \\ union unsigned void volatile while
         \\ _Bool _Complex _Imaginary a a0 _a0 a_0
-        \\ __func__ 1234 01234
+        \\ __func__ 1234 01234 0x1234 0X1234
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -354,6 +366,8 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.func, .literal = "__func__" },
         .{ .kind = Token.TokenKind.decimal_number, .literal = "1234" },
         .{ .kind = Token.TokenKind.octal_number, .literal = "01234" },
+        .{ .kind = Token.TokenKind.hex_number, .literal = "0x1234" },
+        .{ .kind = Token.TokenKind.hex_number, .literal = "0X1234" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
