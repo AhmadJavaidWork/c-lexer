@@ -67,6 +67,7 @@ pub const TokenKind = enum(u8) {
     enum_kw,
     extern_kw,
     float,
+    for_kw,
 };
 
 kind: TokenKind,
@@ -95,6 +96,8 @@ pub fn keywordToTokenKind(keyword: []const u8) !TokenKind {
         return TokenKind.enum_kw;
     } else if (std.mem.eql(u8, "extern", keyword)) {
         return TokenKind.extern_kw;
+    } else if (std.mem.eql(u8, "for", keyword)) {
+        return TokenKind.for_kw;
     } else {
         return std.meta.stringToEnum(TokenKind, keyword) orelse return error.InvalidToken;
     }
