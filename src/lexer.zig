@@ -49,6 +49,7 @@ pub fn nextToken(self: *Self) !Token {
                     self.takeChar();
                     token = Token.new(Token.TokenKind.ellipsis, self.input[self.position - 2 .. self.read_position]);
                 } else {
+                    self.takeChar();
                     return error.InvalidToken;
                 }
             } else {
@@ -227,7 +228,13 @@ pub fn nextToken(self: *Self) !Token {
                     const kind = Token.keywordToTokenKind(self.input[start..self.read_position]) orelse Token.TokenKind.ident;
                     token = Token.new(kind, self.input[start..self.read_position]);
                 }
+            } else if (utils.isNonZeroDigit(self.ch)) {
+                const start: usize = self.position;
+                self.takeNumber();
+                token = Token.new(Token.TokenKind.decimal_number, self.input[start..self.read_position]);
             } else {
+                std.debug.print("char: {any}\n", .{self.ch});
+                self.takeChar();
                 return error.InvalidToken;
             }
         },
@@ -272,6 +279,12 @@ fn takeWord(self: *Self) void {
     }
 }
 
+fn takeNumber(self: *Self) void {
+    while (utils.isDigit(self.peekChar())) {
+        self.takeChar();
+    }
+}
+
 test "tokenize c" {
     var l: Self = Self.init(
         \\ auto break case char const continue
@@ -281,7 +294,7 @@ test "tokenize c" {
         \\ sizeof static struct switch typedef
         \\ union unsigned void volatile while
         \\ _Bool _Complex _Imaginary a a0 _a0 a_0
-        \\ __func__
+        \\ __func__ 1234
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -328,6 +341,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.ident, .literal = "_a0" },
         .{ .kind = Token.TokenKind.ident, .literal = "a_0" },
         .{ .kind = Token.TokenKind.func, .literal = "__func__" },
+        .{ .kind = Token.TokenKind.decimal_number, .literal = "1234" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
