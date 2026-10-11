@@ -56,6 +56,7 @@ pub const TokenKind = enum(u8) {
     // keywords
     auto,
     break_kw,
+    case,
 };
 
 kind: TokenKind,
