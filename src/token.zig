@@ -90,6 +90,7 @@ pub const TokenKind = enum(u8) {
     while_kw,
     _Bool,
     _Complex,
+    _Imaginary,
 };
 
 kind: TokenKind,
