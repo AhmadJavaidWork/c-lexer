@@ -275,6 +275,7 @@ test "tokenize c" {
         \\ float for goto if inline int long
         \\ register restrict return short signed
         \\ sizeof static struct switch typedef
+        \\ union
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -308,6 +309,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.struct_kw, .literal = "struct" },
         .{ .kind = Token.TokenKind.switch_kw, .literal = "switch" },
         .{ .kind = Token.TokenKind.typedef, .literal = "typedef" },
+        .{ .kind = Token.TokenKind.union_kw, .literal = "union" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
