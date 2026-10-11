@@ -60,6 +60,7 @@ pub const TokenKind = enum(u8) {
     char,
     const_kw,
     continue_kw,
+    default,
 };
 
 kind: TokenKind,
