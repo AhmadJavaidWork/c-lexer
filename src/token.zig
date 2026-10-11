@@ -82,6 +82,7 @@ pub const TokenKind = enum(u8) {
     static,
     struct_kw,
     switch_kw,
+    typedef,
 };
 
 kind: TokenKind,
