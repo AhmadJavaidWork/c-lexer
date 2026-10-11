@@ -1,5 +1,6 @@
 const std = @import("std");
 const Token = @import("token.zig");
+const utils = @import("utils.zig");
 
 input: []const u8,
 ch: u8 = 0,
@@ -217,7 +218,14 @@ pub fn nextToken(self: *Self) !Token {
             token = self.prepareCurrentToken(Token.TokenKind.semicolon);
         },
         else => {
-            return error.InvalidToken;
+            if (utils.isLetter(self.ch) or self.ch == '_') {
+                const start: usize = self.position;
+                self.takeWord();
+                const kind = try Token.keywordToTokenKind(self.input[start..self.read_position]);
+                token = Token.new(kind, self.input[start..self.read_position]);
+            } else {
+                return error.InvalidToken;
+            }
         },
     }
 
@@ -254,12 +262,19 @@ fn peekChar(self: *Self) u8 {
     }
 }
 
+fn takeWord(self: *Self) void {
+    while (utils.isLetter(self.peekChar()) or self.peekChar() == '_') {
+        self.takeChar();
+    }
+}
+
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
+        \\ auto[](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
     const expected_tokens = [_]Token{
+        .{ .kind = Token.TokenKind.auto, .literal = "auto" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
