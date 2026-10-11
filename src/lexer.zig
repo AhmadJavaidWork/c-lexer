@@ -273,7 +273,7 @@ test "tokenize c" {
         \\ auto break case char const continue
         \\ default do double else enum extern
         \\ float for goto if inline int long
-        \\ register restrict return short
+        \\ register restrict return short signed
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -301,6 +301,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.restrict, .literal = "restrict" },
         .{ .kind = Token.TokenKind.return_kw, .literal = "return" },
         .{ .kind = Token.TokenKind.short, .literal = "short" },
+        .{ .kind = Token.TokenKind.signed, .literal = "signed" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
