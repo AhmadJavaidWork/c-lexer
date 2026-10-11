@@ -79,6 +79,7 @@ pub const TokenKind = enum(u8) {
     short,
     signed,
     sizeof,
+    static,
 };
 
 kind: TokenKind,
