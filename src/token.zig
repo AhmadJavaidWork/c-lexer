@@ -85,6 +85,7 @@ pub const TokenKind = enum(u8) {
     typedef,
     union_kw,
     unsigned,
+    void_kw,
 };
 
 kind: TokenKind,
@@ -127,6 +128,8 @@ pub fn keywordToTokenKind(keyword: []const u8) !TokenKind {
         return TokenKind.switch_kw;
     } else if (std.mem.eql(u8, "union", keyword)) {
         return TokenKind.union_kw;
+    } else if (std.mem.eql(u8, "void", keyword)) {
+        return TokenKind.void_kw;
     } else {
         return std.meta.stringToEnum(TokenKind, keyword) orelse return error.InvalidToken;
     }
