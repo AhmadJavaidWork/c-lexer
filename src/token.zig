@@ -88,6 +88,7 @@ pub const TokenKind = enum(u8) {
     void_kw,
     volatile_kw,
     while_kw,
+    _Bool,
 };
 
 kind: TokenKind,

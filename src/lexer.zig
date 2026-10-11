@@ -276,6 +276,7 @@ test "tokenize c" {
         \\ register restrict return short signed
         \\ sizeof static struct switch typedef
         \\ union unsigned void volatile while
+        \\ _Bool
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -314,6 +315,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.void_kw, .literal = "void" },
         .{ .kind = Token.TokenKind.volatile_kw, .literal = "volatile" },
         .{ .kind = Token.TokenKind.while_kw, .literal = "while" },
+        .{ .kind = Token.TokenKind._Bool, .literal = "_Bool" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
