@@ -221,8 +221,12 @@ pub fn nextToken(self: *Self) !Token {
             if (utils.isLetter(self.ch) or self.ch == '_') {
                 const start: usize = self.position;
                 self.takeWord();
-                const kind = Token.keywordToTokenKind(self.input[start..self.read_position]) orelse Token.TokenKind.ident;
-                token = Token.new(kind, self.input[start..self.read_position]);
+                if (std.mem.eql(u8, "__func__", self.input[start..self.read_position])) {
+                    token = Token.new(Token.TokenKind.func, self.input[start..self.read_position]);
+                } else {
+                    const kind = Token.keywordToTokenKind(self.input[start..self.read_position]) orelse Token.TokenKind.ident;
+                    token = Token.new(kind, self.input[start..self.read_position]);
+                }
             } else {
                 return error.InvalidToken;
             }
@@ -277,6 +281,7 @@ test "tokenize c" {
         \\ sizeof static struct switch typedef
         \\ union unsigned void volatile while
         \\ _Bool _Complex _Imaginary a a0 _a0 a_0
+        \\ __func__
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -322,6 +327,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.ident, .literal = "a0" },
         .{ .kind = Token.TokenKind.ident, .literal = "_a0" },
         .{ .kind = Token.TokenKind.ident, .literal = "a_0" },
+        .{ .kind = Token.TokenKind.func, .literal = "__func__" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
