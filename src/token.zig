@@ -59,6 +59,7 @@ pub const TokenKind = enum(u8) {
     case,
     char,
     const_kw,
+    continue_kw,
 };
 
 kind: TokenKind,
@@ -79,6 +80,8 @@ pub fn keywordToTokenKind(keyword: []const u8) !TokenKind {
         return TokenKind.break_kw;
     } else if (std.mem.eql(u8, "const", keyword)) {
         return TokenKind.const_kw;
+    } else if (std.mem.eql(u8, "continue", keyword)) {
+        return TokenKind.continue_kw;
     } else {
         return std.meta.stringToEnum(TokenKind, keyword) orelse return error.InvalidToken;
     }
