@@ -274,7 +274,7 @@ test "tokenize c" {
         \\ default do double else enum extern
         \\ float for goto if inline int long
         \\ register restrict return short signed
-        \\ sizeof static struct
+        \\ sizeof static struct switch
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -306,6 +306,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.sizeof, .literal = "sizeof" },
         .{ .kind = Token.TokenKind.static, .literal = "static" },
         .{ .kind = Token.TokenKind.struct_kw, .literal = "struct" },
+        .{ .kind = Token.TokenKind.switch_kw, .literal = "switch" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
