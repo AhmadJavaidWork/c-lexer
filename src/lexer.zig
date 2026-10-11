@@ -271,7 +271,7 @@ fn takeWord(self: *Self) void {
 test "tokenize c" {
     var l: Self = Self.init(
         \\ auto break case char const continue
-        \\ default do double
+        \\ default do double else 
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -285,6 +285,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.default, .literal = "default" },
         .{ .kind = Token.TokenKind.do, .literal = "do" },
         .{ .kind = Token.TokenKind.double, .literal = "double" },
+        .{ .kind = Token.TokenKind.else_kw, .literal = "else" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
