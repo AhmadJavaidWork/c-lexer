@@ -272,7 +272,7 @@ test "tokenize c" {
     var l: Self = Self.init(
         \\ auto break case char const continue
         \\ default do double else enum extern
-        \\ float
+        \\ float for
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -290,6 +290,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.enum_kw, .literal = "enum" },
         .{ .kind = Token.TokenKind.extern_kw, .literal = "extern" },
         .{ .kind = Token.TokenKind.float, .literal = "float" },
+        .{ .kind = Token.TokenKind.for_kw, .literal = "for" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
