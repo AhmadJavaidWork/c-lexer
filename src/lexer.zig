@@ -270,7 +270,7 @@ fn takeWord(self: *Self) void {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ auto break case
+        \\ auto break case char
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -278,6 +278,7 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.auto, .literal = "auto" },
         .{ .kind = Token.TokenKind.break_kw, .literal = "break" },
         .{ .kind = Token.TokenKind.case, .literal = "case" },
+        .{ .kind = Token.TokenKind.char, .literal = "char" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
