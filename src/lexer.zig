@@ -270,11 +270,12 @@ fn takeWord(self: *Self) void {
 
 test "tokenize c" {
     var l: Self = Self.init(
-        \\ auto[](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
+        \\ auto break [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
     const expected_tokens = [_]Token{
         .{ .kind = Token.TokenKind.auto, .literal = "auto" },
+        .{ .kind = Token.TokenKind.break_kw, .literal = "break" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
