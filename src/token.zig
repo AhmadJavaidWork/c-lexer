@@ -91,6 +91,9 @@ pub const TokenKind = enum(u8) {
     _Bool,
     _Complex,
     _Imaginary,
+
+    // identifier
+    ident,
 };
 
 kind: TokenKind,
@@ -106,7 +109,7 @@ pub fn format(self: *const Self, writer: *std.Io.Writer) !void {
     try writer.print("Token: {{ kind: {any}, literal: {s} }}", .{ self.kind, self.literal });
 }
 
-pub fn keywordToTokenKind(keyword: []const u8) !TokenKind {
+pub fn keywordToTokenKind(keyword: []const u8) ?TokenKind {
     if (std.mem.eql(u8, "break", keyword)) {
         return TokenKind.break_kw;
     } else if (std.mem.eql(u8, "const", keyword)) {
@@ -140,6 +143,6 @@ pub fn keywordToTokenKind(keyword: []const u8) !TokenKind {
     } else if (std.mem.eql(u8, "while", keyword)) {
         return TokenKind.while_kw;
     } else {
-        return std.meta.stringToEnum(TokenKind, keyword) orelse return error.InvalidToken;
+        return std.meta.stringToEnum(TokenKind, keyword);
     }
 }

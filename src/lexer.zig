@@ -221,7 +221,7 @@ pub fn nextToken(self: *Self) !Token {
             if (utils.isLetter(self.ch) or self.ch == '_') {
                 const start: usize = self.position;
                 self.takeWord();
-                const kind = try Token.keywordToTokenKind(self.input[start..self.read_position]);
+                const kind = Token.keywordToTokenKind(self.input[start..self.read_position]) orelse Token.TokenKind.ident;
                 token = Token.new(kind, self.input[start..self.read_position]);
             } else {
                 return error.InvalidToken;
@@ -263,7 +263,7 @@ fn peekChar(self: *Self) u8 {
 }
 
 fn takeWord(self: *Self) void {
-    while (utils.isLetter(self.peekChar()) or self.peekChar() == '_') {
+    while (utils.isLetter(self.peekChar()) or utils.isDigit(self.peekChar()) or self.peekChar() == '_') {
         self.takeChar();
     }
 }
@@ -276,7 +276,7 @@ test "tokenize c" {
         \\ register restrict return short signed
         \\ sizeof static struct switch typedef
         \\ union unsigned void volatile while
-        \\ _Bool _Complex _Imaginary
+        \\ _Bool _Complex _Imaginary a a0 _a0 a_0
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -318,6 +318,10 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind._Bool, .literal = "_Bool" },
         .{ .kind = Token.TokenKind._Complex, .literal = "_Complex" },
         .{ .kind = Token.TokenKind._Imaginary, .literal = "_Imaginary" },
+        .{ .kind = Token.TokenKind.ident, .literal = "a" },
+        .{ .kind = Token.TokenKind.ident, .literal = "a0" },
+        .{ .kind = Token.TokenKind.ident, .literal = "_a0" },
+        .{ .kind = Token.TokenKind.ident, .literal = "a_0" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
