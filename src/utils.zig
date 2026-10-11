@@ -9,3 +9,7 @@ pub fn isDigit(c: u8) bool {
 pub fn isNonZeroDigit(c: u8) bool {
     return c >= '1' and c <= '9';
 }
+
+pub fn isOctalDigit(c: u8) bool {
+    return c >= '0' and c <= '7';
+}

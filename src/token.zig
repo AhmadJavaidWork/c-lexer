@@ -97,6 +97,7 @@ pub const TokenKind = enum(u8) {
     func,
 
     decimal_number,
+    octal_number,
 };
 
 kind: TokenKind,
