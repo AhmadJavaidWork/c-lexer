@@ -66,6 +66,7 @@ pub const TokenKind = enum(u8) {
     else_kw,
     enum_kw,
     extern_kw,
+    float,
 };
 
 kind: TokenKind,
