@@ -95,6 +95,8 @@ pub const TokenKind = enum(u8) {
     // identifier
     ident,
     func,
+
+    decimal_number,
 };
 
 kind: TokenKind,
