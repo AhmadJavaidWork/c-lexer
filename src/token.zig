@@ -80,6 +80,7 @@ pub const TokenKind = enum(u8) {
     signed,
     sizeof,
     static,
+    struct_kw,
 };
 
 kind: TokenKind,
@@ -116,6 +117,8 @@ pub fn keywordToTokenKind(keyword: []const u8) !TokenKind {
         return TokenKind.inline_kw;
     } else if (std.mem.eql(u8, "return", keyword)) {
         return TokenKind.return_kw;
+    } else if (std.mem.eql(u8, "struct", keyword)) {
+        return TokenKind.struct_kw;
     } else {
         return std.meta.stringToEnum(TokenKind, keyword) orelse return error.InvalidToken;
     }
