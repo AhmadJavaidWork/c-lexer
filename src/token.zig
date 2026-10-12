@@ -99,6 +99,7 @@ pub const TokenKind = enum(u8) {
     decimal_number,
     octal_number,
     hex_number,
+    negative_number,
 };
 
 kind: TokenKind,
