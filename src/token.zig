@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub const TokenKind = enum(u8) {
+pub const TokenKind = enum(u16) {
     // punctuators
     eof,
     open_bracket,
@@ -102,6 +102,13 @@ pub const TokenKind = enum(u8) {
     negative_decimal_number,
     negative_hex_number,
     negative_octal_number,
+
+    unsigned_decimanl_number,
+    unsigned_long_decimal_number,
+    unsigned_long_long_decimal_number,
+
+    negative_long_decimal_number,
+    negative_long_long_decimal_number,
 };
 
 kind: TokenKind,

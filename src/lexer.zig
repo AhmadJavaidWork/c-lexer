@@ -80,8 +80,20 @@ pub fn nextToken(self: *Self) !Token {
             } else if (utils.isDigit(self.peekChar())) {
                 const start: usize = self.position;
                 self.takeChar();
-                self.takeNumber();
-                token = Token.new(Token.TokenKind.negative_decimal_number, self.input[start..self.read_position]);
+                try self.takeNumber();
+                const kind: Token.TokenKind = try switch (self.input[self.position]) {
+                    'l', 'L' => switch (self.input[self.position - 1]) {
+                        'l', 'L' => switch (self.input[self.position - 2]) {
+                            'u', 'U' => error.NegativeUnsignedNumber,
+                            else => Token.TokenKind.negative_long_long_decimal_number,
+                        },
+                        'u', 'U' => error.NegativeUnsignedNumber,
+                        else => Token.TokenKind.negative_long_decimal_number,
+                    },
+                    'u', 'U' => error.NegativeUnsignedNumber,
+                    else => Token.TokenKind.negative_decimal_number,
+                };
+                token = Token.new(kind, self.input[start..self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.minus);
             }
@@ -257,7 +269,7 @@ pub fn nextToken(self: *Self) !Token {
                 }
             } else if (utils.isNonZeroDigit(self.ch)) {
                 const start: usize = self.position;
-                self.takeNumber();
+                try self.takeNumber();
                 token = Token.new(Token.TokenKind.decimal_number, self.input[start..self.read_position]);
             } else {
                 std.debug.print("char: {any}\n", .{self.ch});
@@ -306,9 +318,30 @@ fn takeWord(self: *Self) void {
     }
 }
 
-fn takeNumber(self: *Self) void {
+fn takeNumber(self: *Self) !void {
     while (utils.isDigit(self.peekChar())) {
         self.takeChar();
+    }
+    if (self.peekChar() != ' ' and self.peekChar() != '\t' and self.peekChar() != '\n' and self.peekChar() != '\r') {
+        if (self.peekChar() == 'u' or self.peekChar() == 'U') {
+            self.takeChar();
+            if (self.peekChar() == 'l' or self.peekChar() == 'L') {
+                self.takeChar();
+            }
+            if (self.peekChar() == 'l' or self.peekChar() == 'L') {
+                self.takeChar();
+            }
+        } else if (self.peekChar() == 'l' or self.peekChar() == 'L') {
+            self.takeChar();
+            if (self.peekChar() == 'l' or self.peekChar() == 'L') {
+                self.takeChar();
+            }
+            if (self.peekChar() == 'u' or self.peekChar() == 'U') {
+                self.takeChar();
+            }
+        } else {
+            return error.InvalidNumberToken;
+        }
     }
 }
 
@@ -334,7 +367,8 @@ test "tokenize c" {
         \\ union unsigned void volatile while
         \\ _Bool _Complex _Imaginary a a0 _a0 a_0
         \\ __func__ 1234 01234 0x1234 0X1234 -1234
-        \\ -0x1234 -0X1234 -01234
+        \\ -0x1234 -0X1234 -01234 -1234l -1234L
+        \\ -1234ll -1234LL -1234Ll -1234lL
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -389,6 +423,12 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0x1234" },
         .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0X1234" },
         .{ .kind = Token.TokenKind.negative_octal_number, .literal = "-01234" },
+        .{ .kind = Token.TokenKind.negative_long_decimal_number, .literal = "-1234l" },
+        .{ .kind = Token.TokenKind.negative_long_decimal_number, .literal = "-1234L" },
+        .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234ll" },
+        .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234LL" },
+        .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234Ll" },
+        .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234lL" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
