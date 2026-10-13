@@ -66,11 +66,22 @@ pub fn nextToken(self: *Self) !Token {
             } else if (self.peekChar() == '=') {
                 self.takeChar();
                 token = Token.new(Token.TokenKind.compound_subtraction, self.input[self.position - 1 .. self.read_position]);
+            } else if (self.peekChar() == '0') {
+                const start: usize = self.position;
+                self.takeChar();
+                if (self.peekChar() == 'x' or self.peekChar() == 'X') {
+                    self.takeChar();
+                    self.takeHexadecimal();
+                    token = Token.new(Token.TokenKind.negative_hex_number, self.input[start..self.read_position]);
+                } else {
+                    self.takeOctal();
+                    token = Token.new(Token.TokenKind.negative_octal_number, self.input[start..self.read_position]);
+                }
             } else if (utils.isDigit(self.peekChar())) {
                 const start: usize = self.position;
                 self.takeChar();
                 self.takeNumber();
-                token = Token.new(Token.TokenKind.negative_number, self.input[start..self.read_position]);
+                token = Token.new(Token.TokenKind.negative_decimal_number, self.input[start..self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.minus);
             }
@@ -323,6 +334,7 @@ test "tokenize c" {
         \\ union unsigned void volatile while
         \\ _Bool _Complex _Imaginary a a0 _a0 a_0
         \\ __func__ 1234 01234 0x1234 0X1234 -1234
+        \\ -0x1234 -0X1234 -01234
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -373,7 +385,10 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.octal_number, .literal = "01234" },
         .{ .kind = Token.TokenKind.hex_number, .literal = "0x1234" },
         .{ .kind = Token.TokenKind.hex_number, .literal = "0X1234" },
-        .{ .kind = Token.TokenKind.negative_number, .literal = "-1234" },
+        .{ .kind = Token.TokenKind.negative_decimal_number, .literal = "-1234" },
+        .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0x1234" },
+        .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0X1234" },
+        .{ .kind = Token.TokenKind.negative_octal_number, .literal = "-01234" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
