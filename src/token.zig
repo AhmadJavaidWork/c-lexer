@@ -97,9 +97,11 @@ pub const TokenKind = enum(u8) {
     func,
 
     decimal_number,
-    octal_number,
     hex_number,
-    negative_number,
+    octal_number,
+    negative_decimal_number,
+    negative_hex_number,
+    negative_octal_number,
 };
 
 kind: TokenKind,
