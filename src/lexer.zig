@@ -270,7 +270,19 @@ pub fn nextToken(self: *Self) !Token {
             } else if (utils.isNonZeroDigit(self.ch)) {
                 const start: usize = self.position;
                 try self.takeNumber();
-                token = Token.new(Token.TokenKind.decimal_number, self.input[start..self.read_position]);
+                const kind: Token.TokenKind = switch (self.input[self.position]) {
+                    'l', 'L' => switch (self.input[self.position - 1]) {
+                        'l', 'L' => switch (self.input[self.position - 2]) {
+                            'u', 'U' => Token.TokenKind.unsigned_long_long_decimal_number,
+                            else => Token.TokenKind.long_long_decimal_number,
+                        },
+                        'u', 'U' => Token.TokenKind.unsigned_long_decimal_number,
+                        else => Token.TokenKind.long_decimal_number,
+                    },
+                    'u', 'U' => Token.TokenKind.unsigned_decimanl_number,
+                    else => Token.TokenKind.decimal_number,
+                };
+                token = Token.new(kind, self.input[start..self.read_position]);
             } else {
                 std.debug.print("char: {any}\n", .{self.ch});
                 self.takeChar();
@@ -368,7 +380,9 @@ test "tokenize c" {
         \\ _Bool _Complex _Imaginary a a0 _a0 a_0
         \\ __func__ 1234 01234 0x1234 0X1234 -1234
         \\ -0x1234 -0X1234 -01234 -1234l -1234L
-        \\ -1234ll -1234LL -1234Ll -1234lL
+        \\ -1234ll -1234LL -1234Ll -1234lL 1234ull
+        \\ 1234Ull 1234uLl 1234ULl 1234ulL 1234UlL
+        \\ 1234uLL 1234ULL
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -429,6 +443,14 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234LL" },
         .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234Ll" },
         .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234lL" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ull" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234Ull" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234uLl" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ULl" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ulL" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234UlL" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234uLL" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ULL" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },

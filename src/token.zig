@@ -97,15 +97,17 @@ pub const TokenKind = enum(u16) {
     func,
 
     decimal_number,
+    long_decimal_number,
+    long_long_decimal_number,
+    unsigned_decimanl_number,
+    unsigned_long_decimal_number,
+    unsigned_long_long_decimal_number,
+
     hex_number,
     octal_number,
     negative_decimal_number,
     negative_hex_number,
     negative_octal_number,
-
-    unsigned_decimanl_number,
-    unsigned_long_decimal_number,
-    unsigned_long_long_decimal_number,
 
     negative_long_decimal_number,
     negative_long_long_decimal_number,
