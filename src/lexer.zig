@@ -9,6 +9,12 @@ read_position: usize = 0,
 
 const Self = @This();
 
+const NumberType = struct {
+    unsigned: bool = false,
+    long1: bool = false,
+    long2: bool = false,
+};
+
 pub fn init(input: []const u8) Self {
     var l: Self = .{ .input = input };
     l.takeChar();
@@ -80,19 +86,20 @@ pub fn nextToken(self: *Self) !Token {
             } else if (utils.isDigit(self.peekChar())) {
                 const start: usize = self.position;
                 self.takeChar();
-                try self.takeNumber();
-                const kind: Token.TokenKind = try switch (self.input[self.position]) {
-                    'l', 'L' => switch (self.input[self.position - 1]) {
-                        'l', 'L' => switch (self.input[self.position - 2]) {
-                            'u', 'U' => error.NegativeUnsignedNumber,
-                            else => Token.TokenKind.negative_long_long_decimal_number,
-                        },
-                        'u', 'U' => error.NegativeUnsignedNumber,
-                        else => Token.TokenKind.negative_long_decimal_number,
-                    },
-                    'u', 'U' => error.NegativeUnsignedNumber,
-                    else => Token.TokenKind.negative_decimal_number,
+                var number_type: NumberType = .{};
+                try self.takeNumber(&number_type);
+                const kind: Token.TokenKind = try if (number_type.unsigned) error.NegativeUnsignedNumber else blk: {
+                    if (number_type.long1) {
+                        if (number_type.long2) {
+                            break :blk Token.TokenKind.negative_long_long_decimal_number;
+                        } else {
+                            break :blk Token.TokenKind.negative_long_decimal_number;
+                        }
+                    } else {
+                        break :blk Token.TokenKind.negative_decimal_number;
+                    }
                 };
+
                 token = Token.new(kind, self.input[start..self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.minus);
@@ -269,18 +276,29 @@ pub fn nextToken(self: *Self) !Token {
                 }
             } else if (utils.isNonZeroDigit(self.ch)) {
                 const start: usize = self.position;
-                try self.takeNumber();
-                const kind: Token.TokenKind = switch (self.input[self.position]) {
-                    'l', 'L' => switch (self.input[self.position - 1]) {
-                        'l', 'L' => switch (self.input[self.position - 2]) {
-                            'u', 'U' => Token.TokenKind.unsigned_long_long_decimal_number,
-                            else => Token.TokenKind.long_long_decimal_number,
-                        },
-                        'u', 'U' => Token.TokenKind.unsigned_long_decimal_number,
-                        else => Token.TokenKind.long_decimal_number,
-                    },
-                    'u', 'U' => Token.TokenKind.unsigned_decimanl_number,
-                    else => Token.TokenKind.decimal_number,
+                var number_type: NumberType = .{};
+                try self.takeNumber(&number_type);
+
+                const kind: Token.TokenKind = if (number_type.unsigned) blk: {
+                    if (number_type.long1) {
+                        if (number_type.long2) {
+                            break :blk Token.TokenKind.unsigned_long_long_decimal_number;
+                        } else {
+                            break :blk Token.TokenKind.unsigned_long_decimal_number;
+                        }
+                    } else {
+                        break :blk Token.TokenKind.unsigned_decimanl_number;
+                    }
+                } else blk: {
+                    if (number_type.long1) {
+                        if (number_type.long2) {
+                            break :blk Token.TokenKind.long_long_decimal_number;
+                        } else {
+                            break :blk Token.TokenKind.long_decimal_number;
+                        }
+                    } else {
+                        break :blk Token.TokenKind.decimal_number;
+                    }
                 };
                 token = Token.new(kind, self.input[start..self.read_position]);
             } else {
@@ -330,29 +348,31 @@ fn takeWord(self: *Self) void {
     }
 }
 
-fn takeNumber(self: *Self) !void {
+fn takeNumber(self: *Self, number_type: *NumberType) !void {
     while (utils.isDigit(self.peekChar())) {
         self.takeChar();
     }
-    if (self.peekChar() != ' ' and self.peekChar() != '\t' and self.peekChar() != '\n' and self.peekChar() != '\r') {
-        if (self.peekChar() == 'u' or self.peekChar() == 'U') {
-            self.takeChar();
-            if (self.peekChar() == 'l' or self.peekChar() == 'L') {
+    blk: while (true) {
+        switch (self.peekChar()) {
+            'u', 'U' => {
+                if (number_type.*.unsigned) {
+                    return error.InvalidDecimalNumber;
+                }
+                number_type.*.unsigned = true;
                 self.takeChar();
-            }
-            if (self.peekChar() == 'l' or self.peekChar() == 'L') {
+            },
+            'l', 'L' => {
+                if (number_type.*.long1 and number_type.*.long2) {
+                    return error.InvalidDecimalNumber;
+                } else if (number_type.*.long1) {
+                    number_type.*.long2 = true;
+                } else {
+                    number_type.*.long1 = true;
+                }
                 self.takeChar();
-            }
-        } else if (self.peekChar() == 'l' or self.peekChar() == 'L') {
-            self.takeChar();
-            if (self.peekChar() == 'l' or self.peekChar() == 'L') {
-                self.takeChar();
-            }
-            if (self.peekChar() == 'u' or self.peekChar() == 'U') {
-                self.takeChar();
-            }
-        } else {
-            return error.InvalidNumberToken;
+            },
+            ' ', '\t', '\n', '\r' => break :blk,
+            else => return error.InvalidDecimalNumber,
         }
     }
 }
@@ -382,7 +402,8 @@ test "tokenize c" {
         \\ -0x1234 -0X1234 -01234 -1234l -1234L
         \\ -1234ll -1234LL -1234Ll -1234lL 1234ull
         \\ 1234Ull 1234uLl 1234ULl 1234ulL 1234UlL
-        \\ 1234uLL 1234ULL
+        \\ 1234uLL 1234ULL 1234u 1234ul 1234ull
+        \\ 1234ll 1234l
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -451,6 +472,11 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234UlL" },
         .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234uLL" },
         .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ULL" },
+        .{ .kind = Token.TokenKind.unsigned_decimanl_number, .literal = "1234u" },
+        .{ .kind = Token.TokenKind.unsigned_long_decimal_number, .literal = "1234ul" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ull" },
+        .{ .kind = Token.TokenKind.long_long_decimal_number, .literal = "1234ll" },
+        .{ .kind = Token.TokenKind.long_decimal_number, .literal = "1234l" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
