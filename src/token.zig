@@ -109,9 +109,14 @@ pub const TokenKind = enum(u16) {
     hex_number,
     long_hex_number,
     long_long_hex_number,
+    unsigned_hex_number,
+    unsigned_long_hex_number,
+    unsigned_long_long_hex_number,
+    negative_hex_number,
+    negative_long_hex_number,
+    negative_long_long_hex_number,
 
     octal_number,
-    negative_hex_number,
     negative_octal_number,
 };
 
