@@ -82,9 +82,9 @@ pub fn nextToken(self: *Self) !Token {
                     const kind: Token.TokenKind = try if (number_type.unsigned) error.NegativeUnsignedNumber else blk: {
                         if (number_type.long1) {
                             if (number_type.long2) {
-                                break :blk Token.TokenKind.negative_long_long_hex_number;
+                                break :blk Token.TokenKind.negative_hex_long_long_number;
                             } else {
-                                break :blk Token.TokenKind.negative_long_hex_number;
+                                break :blk Token.TokenKind.negative_hex_long_number;
                             }
                         } else {
                             break :blk Token.TokenKind.negative_hex_number;
@@ -97,9 +97,9 @@ pub fn nextToken(self: *Self) !Token {
                     const kind: Token.TokenKind = try if (number_type.unsigned) error.NegativeUnsignedNumber else blk: {
                         if (number_type.long1) {
                             if (number_type.long2) {
-                                break :blk Token.TokenKind.negative_long_long_octal_number;
+                                break :blk Token.TokenKind.negative_octal_long_long_number;
                             } else {
-                                break :blk Token.TokenKind.negative_long_octal_number;
+                                break :blk Token.TokenKind.negative_octal_long_number;
                             }
                         } else {
                             break :blk Token.TokenKind.negative_octal_number;
@@ -115,9 +115,9 @@ pub fn nextToken(self: *Self) !Token {
                 const kind: Token.TokenKind = try if (number_type.unsigned) error.NegativeUnsignedNumber else blk: {
                     if (number_type.long1) {
                         if (number_type.long2) {
-                            break :blk Token.TokenKind.negative_long_long_decimal_number;
+                            break :blk Token.TokenKind.negative_decimal_long_long_number;
                         } else {
-                            break :blk Token.TokenKind.negative_long_decimal_number;
+                            break :blk Token.TokenKind.negative_decimal_long_number;
                         }
                     } else {
                         break :blk Token.TokenKind.negative_decimal_number;
@@ -286,19 +286,19 @@ pub fn nextToken(self: *Self) !Token {
                 const kind: Token.TokenKind = if (number_type.unsigned) blk: {
                     if (number_type.long1) {
                         if (number_type.long2) {
-                            break :blk Token.TokenKind.unsigned_long_long_hex_number;
+                            break :blk Token.TokenKind.hex_unsigned_long_long_number;
                         } else {
-                            break :blk Token.TokenKind.unsigned_long_hex_number;
+                            break :blk Token.TokenKind.hex_unsigned_long_number;
                         }
                     } else {
-                        break :blk Token.TokenKind.unsigned_hex_number;
+                        break :blk Token.TokenKind.hex_unsigned_number;
                     }
                 } else blk: {
                     if (number_type.long1) {
                         if (number_type.long2) {
-                            break :blk Token.TokenKind.long_long_hex_number;
+                            break :blk Token.TokenKind.hex_long_long_number;
                         } else {
-                            break :blk Token.TokenKind.long_hex_number;
+                            break :blk Token.TokenKind.hex_long_number;
                         }
                     } else {
                         break :blk Token.TokenKind.hex_number;
@@ -312,19 +312,19 @@ pub fn nextToken(self: *Self) !Token {
                 const kind: Token.TokenKind = if (number_type.unsigned) blk: {
                     if (number_type.long1) {
                         if (number_type.long2) {
-                            break :blk Token.TokenKind.unsigned_long_long_octal_number;
+                            break :blk Token.TokenKind.octal_unsigned_long_long_number;
                         } else {
-                            break :blk Token.TokenKind.unsigned_long_octal_number;
+                            break :blk Token.TokenKind.octal_unsigned_long_number;
                         }
                     } else {
-                        break :blk Token.TokenKind.unsigned_octal_number;
+                        break :blk Token.TokenKind.octal_unsigned_number;
                     }
                 } else blk: {
                     if (number_type.long1) {
                         if (number_type.long2) {
-                            break :blk Token.TokenKind.long_long_octal_number;
+                            break :blk Token.TokenKind.octal_long_long_number;
                         } else {
-                            break :blk Token.TokenKind.long_octal_number;
+                            break :blk Token.TokenKind.octal_long_number;
                         }
                     } else {
                         break :blk Token.TokenKind.octal_number;
@@ -351,19 +351,19 @@ pub fn nextToken(self: *Self) !Token {
                 const kind: Token.TokenKind = if (number_type.unsigned) blk: {
                     if (number_type.long1) {
                         if (number_type.long2) {
-                            break :blk Token.TokenKind.unsigned_long_long_decimal_number;
+                            break :blk Token.TokenKind.decimal_unsigned_long_long_number;
                         } else {
-                            break :blk Token.TokenKind.unsigned_long_decimal_number;
+                            break :blk Token.TokenKind.decimal_unsigned_long_number;
                         }
                     } else {
-                        break :blk Token.TokenKind.unsigned_decimanl_number;
+                        break :blk Token.TokenKind.decimal_unsigned_number;
                     }
                 } else blk: {
                     if (number_type.long1) {
                         if (number_type.long2) {
-                            break :blk Token.TokenKind.long_long_decimal_number;
+                            break :blk Token.TokenKind.decimal_long_long_number;
                         } else {
-                            break :blk Token.TokenKind.long_decimal_number;
+                            break :blk Token.TokenKind.decimal_long_number;
                         }
                     } else {
                         break :blk Token.TokenKind.decimal_number;
@@ -417,10 +417,7 @@ fn takeWord(self: *Self) void {
     }
 }
 
-fn takeNumber(self: *Self, number_type: *NumberType) !void {
-    while (utils.isDigit(self.peekChar())) {
-        self.takeChar();
-    }
+fn setNumberType(self: *Self, number_type: *NumberType) !void {
     blk: while (true) {
         switch (self.peekChar()) {
             'u', 'U' => {
@@ -444,64 +441,30 @@ fn takeNumber(self: *Self, number_type: *NumberType) !void {
             else => return error.InvalidNumber,
         }
     }
+}
+
+fn takeNumber(self: *Self, number_type: *NumberType) !void {
+    while (utils.isDigit(self.peekChar())) {
+        self.takeChar();
+    }
+
+    try self.setNumberType(number_type);
 }
 
 fn takeOctal(self: *Self, number_type: *NumberType) !void {
     while (utils.isOctalDigit(self.peekChar())) {
         self.takeChar();
     }
-    blk: while (true) {
-        switch (self.peekChar()) {
-            'u', 'U' => {
-                if (number_type.*.unsigned) {
-                    return error.InvalidNumber;
-                }
-                number_type.*.unsigned = true;
-                self.takeChar();
-            },
-            'l', 'L' => {
-                if (number_type.*.long1 and number_type.*.long2) {
-                    return error.InvalidNumber;
-                } else if (number_type.*.long1) {
-                    number_type.*.long2 = true;
-                } else {
-                    number_type.*.long1 = true;
-                }
-                self.takeChar();
-            },
-            ' ', '\t', '\n', '\r' => break :blk,
-            else => return error.InvalidNumber,
-        }
-    }
+
+    try self.setNumberType(number_type);
 }
 
 fn takeHexadecimal(self: *Self, number_type: *NumberType) !void {
     while (utils.isHexadecimalDigit(self.peekChar())) {
         self.takeChar();
     }
-    blk: while (true) {
-        switch (self.peekChar()) {
-            'u', 'U' => {
-                if (number_type.*.unsigned) {
-                    return error.InvalidNumber;
-                }
-                number_type.*.unsigned = true;
-                self.takeChar();
-            },
-            'l', 'L' => {
-                if (number_type.*.long1 and number_type.*.long2) {
-                    return error.InvalidNumber;
-                } else if (number_type.*.long1) {
-                    number_type.*.long2 = true;
-                } else {
-                    number_type.*.long1 = true;
-                }
-                self.takeChar();
-            },
-            ' ', '\t', '\n', '\r' => break :blk,
-            else => return error.InvalidNumber,
-        }
-    }
+
+    try self.setNumberType(number_type);
 }
 
 test "tokenize c" {
@@ -577,45 +540,45 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0x1234" },
         .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0X1234" },
         .{ .kind = Token.TokenKind.negative_octal_number, .literal = "-01234" },
-        .{ .kind = Token.TokenKind.negative_long_decimal_number, .literal = "-1234l" },
-        .{ .kind = Token.TokenKind.negative_long_decimal_number, .literal = "-1234L" },
-        .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234ll" },
-        .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234LL" },
-        .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234Ll" },
-        .{ .kind = Token.TokenKind.negative_long_long_decimal_number, .literal = "-1234lL" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ull" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234Ull" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234uLl" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ULl" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ulL" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234UlL" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234uLL" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ULL" },
-        .{ .kind = Token.TokenKind.unsigned_decimanl_number, .literal = "1234u" },
-        .{ .kind = Token.TokenKind.unsigned_long_decimal_number, .literal = "1234ul" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_decimal_number, .literal = "1234ull" },
-        .{ .kind = Token.TokenKind.long_long_decimal_number, .literal = "1234ll" },
-        .{ .kind = Token.TokenKind.long_decimal_number, .literal = "1234l" },
-        .{ .kind = Token.TokenKind.negative_long_hex_number, .literal = "-0x1234l" },
-        .{ .kind = Token.TokenKind.negative_long_hex_number, .literal = "-0x1234L" },
-        .{ .kind = Token.TokenKind.negative_long_long_hex_number, .literal = "-0x1234ll" },
-        .{ .kind = Token.TokenKind.negative_long_long_hex_number, .literal = "-0x1234LL" },
-        .{ .kind = Token.TokenKind.negative_long_long_hex_number, .literal = "-0x1234lL" },
-        .{ .kind = Token.TokenKind.negative_long_long_hex_number, .literal = "-0x1234Ll" },
-        .{ .kind = Token.TokenKind.unsigned_hex_number, .literal = "0x1234u" },
-        .{ .kind = Token.TokenKind.long_hex_number, .literal = "0x1234l" },
-        .{ .kind = Token.TokenKind.long_hex_number, .literal = "0x1234L" },
-        .{ .kind = Token.TokenKind.unsigned_hex_number, .literal = "0x1234U" },
-        .{ .kind = Token.TokenKind.unsigned_long_hex_number, .literal = "0x1234lu" },
-        .{ .kind = Token.TokenKind.unsigned_long_hex_number, .literal = "0x1234LU" },
-        .{ .kind = Token.TokenKind.unsigned_long_hex_number, .literal = "0x1234Lu" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_hex_number, .literal = "0x1234llu" },
-        .{ .kind = Token.TokenKind.negative_long_octal_number, .literal = "-01234l" },
-        .{ .kind = Token.TokenKind.negative_long_long_octal_number, .literal = "-01234ll" },
-        .{ .kind = Token.TokenKind.negative_long_long_octal_number, .literal = "-01234LL" },
-        .{ .kind = Token.TokenKind.unsigned_octal_number, .literal = "01234u" },
-        .{ .kind = Token.TokenKind.unsigned_long_octal_number, .literal = "01234UL" },
-        .{ .kind = Token.TokenKind.unsigned_long_long_octal_number, .literal = "01234ull" },
+        .{ .kind = Token.TokenKind.negative_decimal_long_number, .literal = "-1234l" },
+        .{ .kind = Token.TokenKind.negative_decimal_long_number, .literal = "-1234L" },
+        .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234ll" },
+        .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234LL" },
+        .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234Ll" },
+        .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234lL" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ull" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234Ull" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234uLl" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ULl" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ulL" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234UlL" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234uLL" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ULL" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_number, .literal = "1234u" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_number, .literal = "1234ul" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ull" },
+        .{ .kind = Token.TokenKind.decimal_long_long_number, .literal = "1234ll" },
+        .{ .kind = Token.TokenKind.decimal_long_number, .literal = "1234l" },
+        .{ .kind = Token.TokenKind.negative_hex_long_number, .literal = "-0x1234l" },
+        .{ .kind = Token.TokenKind.negative_hex_long_number, .literal = "-0x1234L" },
+        .{ .kind = Token.TokenKind.negative_hex_long_long_number, .literal = "-0x1234ll" },
+        .{ .kind = Token.TokenKind.negative_hex_long_long_number, .literal = "-0x1234LL" },
+        .{ .kind = Token.TokenKind.negative_hex_long_long_number, .literal = "-0x1234lL" },
+        .{ .kind = Token.TokenKind.negative_hex_long_long_number, .literal = "-0x1234Ll" },
+        .{ .kind = Token.TokenKind.hex_unsigned_number, .literal = "0x1234u" },
+        .{ .kind = Token.TokenKind.hex_long_number, .literal = "0x1234l" },
+        .{ .kind = Token.TokenKind.hex_long_number, .literal = "0x1234L" },
+        .{ .kind = Token.TokenKind.hex_unsigned_number, .literal = "0x1234U" },
+        .{ .kind = Token.TokenKind.hex_unsigned_long_number, .literal = "0x1234lu" },
+        .{ .kind = Token.TokenKind.hex_unsigned_long_number, .literal = "0x1234LU" },
+        .{ .kind = Token.TokenKind.hex_unsigned_long_number, .literal = "0x1234Lu" },
+        .{ .kind = Token.TokenKind.hex_unsigned_long_long_number, .literal = "0x1234llu" },
+        .{ .kind = Token.TokenKind.negative_octal_long_number, .literal = "-01234l" },
+        .{ .kind = Token.TokenKind.negative_octal_long_long_number, .literal = "-01234ll" },
+        .{ .kind = Token.TokenKind.negative_octal_long_long_number, .literal = "-01234LL" },
+        .{ .kind = Token.TokenKind.octal_unsigned_number, .literal = "01234u" },
+        .{ .kind = Token.TokenKind.octal_unsigned_long_number, .literal = "01234UL" },
+        .{ .kind = Token.TokenKind.octal_unsigned_long_long_number, .literal = "01234ull" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
