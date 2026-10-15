@@ -92,8 +92,20 @@ pub fn nextToken(self: *Self) !Token {
                     };
                     token = Token.new(kind, self.input[start..self.read_position]);
                 } else {
-                    self.takeOctal();
-                    token = Token.new(Token.TokenKind.negative_octal_number, self.input[start..self.read_position]);
+                    var number_type: NumberType = .{};
+                    try self.takeOctal(&number_type);
+                    const kind: Token.TokenKind = try if (number_type.unsigned) error.NegativeUnsignedNumber else blk: {
+                        if (number_type.long1) {
+                            if (number_type.long2) {
+                                break :blk Token.TokenKind.negative_long_long_octal_number;
+                            } else {
+                                break :blk Token.TokenKind.negative_long_octal_number;
+                            }
+                        } else {
+                            break :blk Token.TokenKind.negative_octal_number;
+                        }
+                    };
+                    token = Token.new(kind, self.input[start..self.read_position]);
                 }
             } else if (utils.isDigit(self.peekChar())) {
                 const start: usize = self.position;
@@ -295,8 +307,30 @@ pub fn nextToken(self: *Self) !Token {
 
                 token = Token.new(kind, self.input[start..self.read_position]);
             } else {
-                self.takeOctal();
-                token = Token.new(Token.TokenKind.octal_number, self.input[start..self.read_position]);
+                var number_type: NumberType = .{};
+                try self.takeOctal(&number_type);
+                const kind: Token.TokenKind = if (number_type.unsigned) blk: {
+                    if (number_type.long1) {
+                        if (number_type.long2) {
+                            break :blk Token.TokenKind.unsigned_long_long_octal_number;
+                        } else {
+                            break :blk Token.TokenKind.unsigned_long_octal_number;
+                        }
+                    } else {
+                        break :blk Token.TokenKind.unsigned_octal_number;
+                    }
+                } else blk: {
+                    if (number_type.long1) {
+                        if (number_type.long2) {
+                            break :blk Token.TokenKind.long_long_octal_number;
+                        } else {
+                            break :blk Token.TokenKind.long_octal_number;
+                        }
+                    } else {
+                        break :blk Token.TokenKind.octal_number;
+                    }
+                };
+                token = Token.new(kind, self.input[start..self.read_position]);
             }
         },
         else => {
@@ -412,9 +446,32 @@ fn takeNumber(self: *Self, number_type: *NumberType) !void {
     }
 }
 
-fn takeOctal(self: *Self) void {
+fn takeOctal(self: *Self, number_type: *NumberType) !void {
     while (utils.isOctalDigit(self.peekChar())) {
         self.takeChar();
+    }
+    blk: while (true) {
+        switch (self.peekChar()) {
+            'u', 'U' => {
+                if (number_type.*.unsigned) {
+                    return error.InvalidNumber;
+                }
+                number_type.*.unsigned = true;
+                self.takeChar();
+            },
+            'l', 'L' => {
+                if (number_type.*.long1 and number_type.*.long2) {
+                    return error.InvalidNumber;
+                } else if (number_type.*.long1) {
+                    number_type.*.long2 = true;
+                } else {
+                    number_type.*.long1 = true;
+                }
+                self.takeChar();
+            },
+            ' ', '\t', '\n', '\r' => break :blk,
+            else => return error.InvalidNumber,
+        }
     }
 }
 
@@ -464,7 +521,8 @@ test "tokenize c" {
         \\ 1234ll 1234l -0x1234l -0x1234L -0x1234ll
         \\ -0x1234LL -0x1234lL -0x1234Ll 0x1234u 0x1234l
         \\ 0x1234L 0x1234U 0x1234lu 0x1234LU 0x1234Lu
-        \\ 0x1234llu
+        \\ 0x1234llu -01234l -01234ll -01234LL 01234u
+        \\ 01234UL 01234ull
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -552,6 +610,12 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.unsigned_long_hex_number, .literal = "0x1234LU" },
         .{ .kind = Token.TokenKind.unsigned_long_hex_number, .literal = "0x1234Lu" },
         .{ .kind = Token.TokenKind.unsigned_long_long_hex_number, .literal = "0x1234llu" },
+        .{ .kind = Token.TokenKind.negative_long_octal_number, .literal = "-01234l" },
+        .{ .kind = Token.TokenKind.negative_long_long_octal_number, .literal = "-01234ll" },
+        .{ .kind = Token.TokenKind.negative_long_long_octal_number, .literal = "-01234LL" },
+        .{ .kind = Token.TokenKind.unsigned_octal_number, .literal = "01234u" },
+        .{ .kind = Token.TokenKind.unsigned_long_octal_number, .literal = "01234UL" },
+        .{ .kind = Token.TokenKind.unsigned_long_long_octal_number, .literal = "01234ull" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
