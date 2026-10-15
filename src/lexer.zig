@@ -331,26 +331,35 @@ pub fn nextToken(self: *Self) !Token {
                 var number_type: NumberType = .{};
                 try self.takeOctal(&number_type);
                 const kind: Token.TokenKind = if (number_type.unsigned) blk: {
-                    if (number_type.long1) {
-                        if (number_type.long2) {
-                            break :blk Token.TokenKind.octal_unsigned_long_long_number;
-                        } else {
-                            break :blk Token.TokenKind.octal_unsigned_long_number;
-                        }
+                    if (number_type.long1 and number_type.long2 and number_type.float) {
+                        break :blk Token.TokenKind.octal_float_unsigned_long_long_number;
+                    } else if (number_type.long1 and number_type.float) {
+                        break :blk Token.TokenKind.octal_float_unsigned_long_number;
+                    } else if (number_type.float) {
+                        break :blk Token.TokenKind.octal_float_unsigned_number;
+                    } else if (number_type.long1 and number_type.long2) {
+                        break :blk Token.TokenKind.octal_unsigned_long_long_number;
+                    } else if (number_type.long1) {
+                        break :blk Token.TokenKind.octal_unsigned_long_number;
                     } else {
                         break :blk Token.TokenKind.octal_unsigned_number;
                     }
                 } else blk: {
-                    if (number_type.long1) {
-                        if (number_type.long2) {
-                            break :blk Token.TokenKind.octal_long_long_number;
-                        } else {
-                            break :blk Token.TokenKind.octal_long_number;
-                        }
+                    if (number_type.long1 and number_type.long2 and number_type.float) {
+                        break :blk Token.TokenKind.octal_float_long_long_number;
+                    } else if (number_type.long1 and number_type.float) {
+                        break :blk Token.TokenKind.octal_float_long_number;
+                    } else if (number_type.float) {
+                        break :blk Token.TokenKind.octal_float_number;
+                    } else if (number_type.long1 and number_type.long2) {
+                        break :blk Token.TokenKind.octal_long_long_number;
+                    } else if (number_type.long1) {
+                        break :blk Token.TokenKind.octal_long_number;
                     } else {
                         break :blk Token.TokenKind.octal_number;
                     }
                 };
+
                 token = Token.new(kind, self.input[start..self.read_position]);
             }
         },
@@ -538,7 +547,7 @@ test "tokenize c" {
         \\ 01234UL 01234ull -1234.1234 -1234.1234l
         \\ -1234.1234LL 1234.1234ull 1234.1234l -0x12ab.12ab
         \\ -0x12ab.12abll 0x12ab.12ab 0x12ab.12abull -012.12
-        \\ -012.12ll
+        \\ -012.12ll 012.12 012.12ull
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -643,6 +652,8 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.hex_float_unsigned_long_long_number, .literal = "0x12ab.12abull" },
         .{ .kind = Token.TokenKind.negative_octal_float_number, .literal = "-012.12" },
         .{ .kind = Token.TokenKind.negative_octal_float_long_long_number, .literal = "-012.12ll" },
+        .{ .kind = Token.TokenKind.octal_float_number, .literal = "012.12" },
+        .{ .kind = Token.TokenKind.octal_float_unsigned_long_long_number, .literal = "012.12ull" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
