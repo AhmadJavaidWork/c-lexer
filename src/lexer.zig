@@ -59,6 +59,29 @@ pub fn nextToken(self: *Self) !Token {
                     self.takeChar();
                     return error.InvalidToken;
                 }
+            } else if (utils.isDigit(self.peekChar())) {
+                var number_type: NumberType = .{ .float = true };
+                const start: usize = self.position;
+                self.takeChar();
+                try self.takeNumber(&number_type);
+                const kind: Token.TokenKind = if (number_type.unsigned) blk: {
+                    if (number_type.long1 and number_type.long2) {
+                        break :blk Token.TokenKind.decimal_float_unsigned_long_long_number;
+                    } else if (number_type.long1) {
+                        break :blk Token.TokenKind.decimal_float_unsigned_long_number;
+                    } else {
+                        break :blk Token.TokenKind.decimal_float_unsigned_number;
+                    }
+                } else blk: {
+                    if (number_type.long1 and number_type.long2) {
+                        break :blk Token.TokenKind.decimal_float_long_long_number;
+                    } else if (number_type.long1) {
+                        break :blk Token.TokenKind.decimal_float_long_number;
+                    } else {
+                        break :blk Token.TokenKind.decimal_float_number;
+                    }
+                };
+                token = Token.new(kind, self.input[start..self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.dot);
             }
@@ -522,6 +545,7 @@ test "tokenize c" {
         \\ 01234UL 01234ull -1234.1234 -1234.1234l
         \\ -1234.1234LL 1234.1234ull 1234.1234l -0x12ab.12ab
         \\ -0x12ab.12abll 0x12ab.12ab 0x12ab.12abull
+        \\ .1234 .1234l .1234ul .1234ull
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -624,6 +648,10 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.negative_hex_float_long_long_number, .literal = "-0x12ab.12abll" },
         .{ .kind = Token.TokenKind.hex_float_number, .literal = "0x12ab.12ab" },
         .{ .kind = Token.TokenKind.hex_float_unsigned_long_long_number, .literal = "0x12ab.12abull" },
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = ".1234" },
+        .{ .kind = Token.TokenKind.decimal_float_long_number, .literal = ".1234l" },
+        .{ .kind = Token.TokenKind.decimal_float_unsigned_long_number, .literal = ".1234ul" },
+        .{ .kind = Token.TokenKind.decimal_float_unsigned_long_long_number, .literal = ".1234ull" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
