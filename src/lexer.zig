@@ -14,6 +14,7 @@ const NumberType = struct {
     long1: bool = false,
     long2: bool = false,
     float: bool = false,
+    exponent: bool = false,
 };
 
 pub fn init(input: []const u8) Self {
@@ -487,12 +488,23 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
 }
 
 fn takeNumber(self: *Self, number_type: *NumberType) !void {
-    while (utils.isDigit(self.peekChar()) or self.peekChar() == '.') {
+    while (utils.isDigit(self.peekChar()) or self.peekChar() == '.' or (self.peekChar() == 'e' or self.peekChar() == 'E')) {
         if (self.peekChar() == '.') {
             if (number_type.*.float) {
                 return error.InvalidNumber;
             } else {
                 number_type.*.float = true;
+            }
+        }
+        if (self.peekChar() == 'e' or self.peekChar() == 'E') {
+            if (number_type.*.exponent) {
+                return error.InvalidNumber;
+            } else {
+                number_type.*.exponent = true;
+                self.takeChar();
+                if (self.peekChar() == '+' or self.peekChar() == '-') {
+                    self.takeChar();
+                }
             }
         }
         self.takeChar();
@@ -545,7 +557,8 @@ test "tokenize c" {
         \\ 01234UL 01234ull -1234.1234 -1234.1234l
         \\ -1234.1234LL 1234.1234ull 1234.1234l -0x12ab.12ab
         \\ -0x12ab.12abll 0x12ab.12ab 0x12ab.12abull
-        \\ .1234 .1234l .1234ul .1234ull
+        \\ .1234 .1234l .1234ul .1234ull .1234e-10ll
+        \\ .1234e+10ll .1234e10ll
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -652,6 +665,9 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.decimal_float_long_number, .literal = ".1234l" },
         .{ .kind = Token.TokenKind.decimal_float_unsigned_long_number, .literal = ".1234ul" },
         .{ .kind = Token.TokenKind.decimal_float_unsigned_long_long_number, .literal = ".1234ull" },
+        .{ .kind = Token.TokenKind.decimal_float_long_long_number, .literal = ".1234e-10ll" },
+        .{ .kind = Token.TokenKind.decimal_float_long_long_number, .literal = ".1234e+10ll" },
+        .{ .kind = Token.TokenKind.decimal_float_long_long_number, .literal = ".1234e10ll" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
