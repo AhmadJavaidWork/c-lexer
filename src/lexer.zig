@@ -567,7 +567,8 @@ test "identifiers" {
 
 test "decimal numbers" {
     var l: Self = Self.init(
-        \\ 1234 1234u 1234ul 1234ull 1234ULL -1234 -1234l -1234ll
+        \\ 1234 1234u 1234ul 1234ull 1234ULL -1234 -1234l -1234ll .1234
+        \\ 1234.1234 1234.
     );
 
     const expected_tokens = [_]Token{
@@ -579,6 +580,9 @@ test "decimal numbers" {
         .{ .kind = Token.TokenKind.negative_decimal_number, .literal = "-1234" },
         .{ .kind = Token.TokenKind.negative_decimal_long_number, .literal = "-1234l" },
         .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234ll" },
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = ".1234" },
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = "1234.1234" },
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = "1234." },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
@@ -724,33 +728,6 @@ test "punctuators" {
 
     for (expected_tokens) |et| {
         actual_token = try l.nextToken();
-
-        try std.testing.expectEqual(et.kind, actual_token.kind);
-        try std.testing.expectEqualStrings(et.literal, actual_token.literal);
-    }
-
-    try std.testing.expect(l.position > l.input.len);
-    try std.testing.expect(l.read_position > l.input.len);
-    try std.testing.expectEqual(0, l.ch);
-}
-
-test "decimal float" {
-    var l: Self = Self.init(
-        \\ .1234 1234.1234 1234.
-    );
-
-    const expected_tokens = [_]Token{
-        .{ .kind = Token.TokenKind.decimal_float_number, .literal = ".1234" },
-        .{ .kind = Token.TokenKind.decimal_float_number, .literal = "1234.1234" },
-        .{ .kind = Token.TokenKind.decimal_float_number, .literal = "1234." },
-        .{ .kind = Token.TokenKind.eof, .literal = "" },
-    };
-
-    try std.testing.expectEqual(0, l.position);
-    try std.testing.expectEqual(1, l.read_position);
-
-    for (expected_tokens) |et| {
-        const actual_token = try l.nextToken();
 
         try std.testing.expectEqual(et.kind, actual_token.kind);
         try std.testing.expectEqualStrings(et.literal, actual_token.literal);
