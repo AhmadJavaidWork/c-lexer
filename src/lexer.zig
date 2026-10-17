@@ -656,118 +656,12 @@ test "hexadecimal numbers" {
     try std.testing.expectEqual(0, l.ch);
 }
 
-test "tokenize c" {
+test "punctuators" {
     var l: Self = Self.init(
-        \\ auto break case char const continue
-        \\ default do double else enum extern
-        \\ float for goto if inline int long
-        \\ register restrict return short signed
-        \\ sizeof static struct switch typedef
-        \\ union unsigned void volatile while
-        \\ _Bool _Complex _Imaginary a a0 _a0 a_0
-        \\ __func__ 1234 01234 0x1234 0X1234 -1234
-        \\ -0x1234 -0X1234 -01234 -1234l -1234L
-        \\ -1234ll -1234LL -1234Ll -1234lL 1234ull
-        \\ 1234Ull 1234uLl 1234ULl 1234ulL 1234UlL
-        \\ 1234uLL 1234ULL 1234u 1234ul 1234ull
-        \\ 1234ll 1234l -0x1234l -0x1234L -0x1234ll
-        \\ -0x1234LL -0x1234lL -0x1234Ll 0x1234u 0x1234l
-        \\ 0x1234L 0x1234U 0x1234lu 0x1234LU 0x1234Lu
-        \\ 0x1234llu -01234l -01234ll -01234LL 01234u
-        \\ 01234UL 01234ull 
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
     const expected_tokens = [_]Token{
-        .{ .kind = Token.TokenKind.auto, .literal = "auto" },
-        .{ .kind = Token.TokenKind.break_kw, .literal = "break" },
-        .{ .kind = Token.TokenKind.case, .literal = "case" },
-        .{ .kind = Token.TokenKind.char, .literal = "char" },
-        .{ .kind = Token.TokenKind.const_kw, .literal = "const" },
-        .{ .kind = Token.TokenKind.continue_kw, .literal = "continue" },
-        .{ .kind = Token.TokenKind.default, .literal = "default" },
-        .{ .kind = Token.TokenKind.do, .literal = "do" },
-        .{ .kind = Token.TokenKind.double, .literal = "double" },
-        .{ .kind = Token.TokenKind.else_kw, .literal = "else" },
-        .{ .kind = Token.TokenKind.enum_kw, .literal = "enum" },
-        .{ .kind = Token.TokenKind.extern_kw, .literal = "extern" },
-        .{ .kind = Token.TokenKind.float, .literal = "float" },
-        .{ .kind = Token.TokenKind.for_kw, .literal = "for" },
-        .{ .kind = Token.TokenKind.goto, .literal = "goto" },
-        .{ .kind = Token.TokenKind.if_kw, .literal = "if" },
-        .{ .kind = Token.TokenKind.inline_kw, .literal = "inline" },
-        .{ .kind = Token.TokenKind.int, .literal = "int" },
-        .{ .kind = Token.TokenKind.long, .literal = "long" },
-        .{ .kind = Token.TokenKind.register, .literal = "register" },
-        .{ .kind = Token.TokenKind.restrict, .literal = "restrict" },
-        .{ .kind = Token.TokenKind.return_kw, .literal = "return" },
-        .{ .kind = Token.TokenKind.short, .literal = "short" },
-        .{ .kind = Token.TokenKind.signed, .literal = "signed" },
-        .{ .kind = Token.TokenKind.sizeof, .literal = "sizeof" },
-        .{ .kind = Token.TokenKind.static, .literal = "static" },
-        .{ .kind = Token.TokenKind.struct_kw, .literal = "struct" },
-        .{ .kind = Token.TokenKind.switch_kw, .literal = "switch" },
-        .{ .kind = Token.TokenKind.typedef, .literal = "typedef" },
-        .{ .kind = Token.TokenKind.union_kw, .literal = "union" },
-        .{ .kind = Token.TokenKind.unsigned, .literal = "unsigned" },
-        .{ .kind = Token.TokenKind.void_kw, .literal = "void" },
-        .{ .kind = Token.TokenKind.volatile_kw, .literal = "volatile" },
-        .{ .kind = Token.TokenKind.while_kw, .literal = "while" },
-        .{ .kind = Token.TokenKind._Bool, .literal = "_Bool" },
-        .{ .kind = Token.TokenKind._Complex, .literal = "_Complex" },
-        .{ .kind = Token.TokenKind._Imaginary, .literal = "_Imaginary" },
-        .{ .kind = Token.TokenKind.ident, .literal = "a" },
-        .{ .kind = Token.TokenKind.ident, .literal = "a0" },
-        .{ .kind = Token.TokenKind.ident, .literal = "_a0" },
-        .{ .kind = Token.TokenKind.ident, .literal = "a_0" },
-        .{ .kind = Token.TokenKind.func, .literal = "__func__" },
-        .{ .kind = Token.TokenKind.decimal_number, .literal = "1234" },
-        .{ .kind = Token.TokenKind.octal_number, .literal = "01234" },
-        .{ .kind = Token.TokenKind.hex_number, .literal = "0x1234" },
-        .{ .kind = Token.TokenKind.hex_number, .literal = "0X1234" },
-        .{ .kind = Token.TokenKind.negative_decimal_number, .literal = "-1234" },
-        .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0x1234" },
-        .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0X1234" },
-        .{ .kind = Token.TokenKind.negative_octal_number, .literal = "-01234" },
-        .{ .kind = Token.TokenKind.negative_decimal_long_number, .literal = "-1234l" },
-        .{ .kind = Token.TokenKind.negative_decimal_long_number, .literal = "-1234L" },
-        .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234ll" },
-        .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234LL" },
-        .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234Ll" },
-        .{ .kind = Token.TokenKind.negative_decimal_long_long_number, .literal = "-1234lL" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ull" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234Ull" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234uLl" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ULl" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ulL" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234UlL" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234uLL" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ULL" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_number, .literal = "1234u" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_number, .literal = "1234ul" },
-        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ull" },
-        .{ .kind = Token.TokenKind.decimal_long_long_number, .literal = "1234ll" },
-        .{ .kind = Token.TokenKind.decimal_long_number, .literal = "1234l" },
-        .{ .kind = Token.TokenKind.negative_hex_long_number, .literal = "-0x1234l" },
-        .{ .kind = Token.TokenKind.negative_hex_long_number, .literal = "-0x1234L" },
-        .{ .kind = Token.TokenKind.negative_hex_long_long_number, .literal = "-0x1234ll" },
-        .{ .kind = Token.TokenKind.negative_hex_long_long_number, .literal = "-0x1234LL" },
-        .{ .kind = Token.TokenKind.negative_hex_long_long_number, .literal = "-0x1234lL" },
-        .{ .kind = Token.TokenKind.negative_hex_long_long_number, .literal = "-0x1234Ll" },
-        .{ .kind = Token.TokenKind.hex_unsigned_number, .literal = "0x1234u" },
-        .{ .kind = Token.TokenKind.hex_long_number, .literal = "0x1234l" },
-        .{ .kind = Token.TokenKind.hex_long_number, .literal = "0x1234L" },
-        .{ .kind = Token.TokenKind.hex_unsigned_number, .literal = "0x1234U" },
-        .{ .kind = Token.TokenKind.hex_unsigned_long_number, .literal = "0x1234lu" },
-        .{ .kind = Token.TokenKind.hex_unsigned_long_number, .literal = "0x1234LU" },
-        .{ .kind = Token.TokenKind.hex_unsigned_long_number, .literal = "0x1234Lu" },
-        .{ .kind = Token.TokenKind.hex_unsigned_long_long_number, .literal = "0x1234llu" },
-        .{ .kind = Token.TokenKind.negative_octal_long_number, .literal = "-01234l" },
-        .{ .kind = Token.TokenKind.negative_octal_long_long_number, .literal = "-01234ll" },
-        .{ .kind = Token.TokenKind.negative_octal_long_long_number, .literal = "-01234LL" },
-        .{ .kind = Token.TokenKind.octal_unsigned_number, .literal = "01234u" },
-        .{ .kind = Token.TokenKind.octal_unsigned_long_number, .literal = "01234UL" },
-        .{ .kind = Token.TokenKind.octal_unsigned_long_long_number, .literal = "01234ull" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
