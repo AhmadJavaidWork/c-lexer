@@ -95,40 +95,6 @@ pub const TokenKind = enum(u16) {
     // identifier
     ident,
     func,
-
-    // integer constants
-    decimal_number,
-    decimal_long_number,
-    decimal_long_long_number,
-    decimal_unsigned_number,
-    decimal_unsigned_long_number,
-    decimal_unsigned_long_long_number,
-    negative_decimal_number,
-    negative_decimal_long_number,
-    negative_decimal_long_long_number,
-
-    hex_number,
-    hex_long_number,
-    hex_long_long_number,
-    hex_unsigned_number,
-    hex_unsigned_long_number,
-    hex_unsigned_long_long_number,
-    negative_hex_number,
-    negative_hex_long_number,
-    negative_hex_long_long_number,
-
-    octal_number,
-    octal_long_number,
-    octal_long_long_number,
-    octal_unsigned_number,
-    octal_unsigned_long_number,
-    octal_unsigned_long_long_number,
-    negative_octal_number,
-    negative_octal_long_number,
-    negative_octal_long_long_number,
-
-    // float constants
-    decimal_float_number,
 };
 
 kind: TokenKind,
