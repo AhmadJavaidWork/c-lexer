@@ -60,6 +60,11 @@ pub fn nextToken(self: *Self) !Token {
                     self.takeChar();
                     return error.InvalidToken;
                 }
+            } else if (utils.isDigit(self.peekChar())) {
+                const start: usize = self.position;
+                var number_type: NumberType = .{};
+                try self.takeNumber(&number_type);
+                token = .{ .kind = Token.TokenKind.decimal_float_number, .literal = self.input[start..self.read_position] };
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.dot);
             }
@@ -412,7 +417,7 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
                 self.takeChar();
             },
             'l', 'L' => {
-                if ((number_type.*.long1 and number_type.*.long2) or (number_type.*.float and number_type.*.long1)) {
+                if (number_type.*.long1 and number_type.*.long2) {
                     return error.InvalidNumber;
                 } else if (number_type.*.long1) {
                     number_type.*.long2 = true;
@@ -421,7 +426,7 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
                 }
                 self.takeChar();
             },
-            ' ', '\t', '\n', '\r' => break :blk,
+            ' ', '\t', '\n', '\r', 0 => break :blk,
             else => return error.InvalidNumber,
         }
     }
@@ -434,17 +439,6 @@ fn takeNumber(self: *Self, number_type: *NumberType) !void {
                 return error.InvalidNumber;
             } else {
                 number_type.*.float = true;
-            }
-        }
-        if (self.peekChar() == 'e' or self.peekChar() == 'E') {
-            if (number_type.*.exponent) {
-                return error.InvalidNumber;
-            } else {
-                number_type.*.exponent = true;
-                self.takeChar();
-                if (self.peekChar() == '+' or self.peekChar() == '-') {
-                    self.takeChar();
-                }
             }
         }
         self.takeChar();
@@ -630,7 +624,6 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.close_bracket, .literal = ":>" },
         .{ .kind = Token.TokenKind.open_brace, .literal = "<%" },
         .{ .kind = Token.TokenKind.close_brace, .literal = "%>" },
-
         .{ .kind = Token.TokenKind.comment, .literal = "//" },
         .{ .kind = Token.TokenKind.comment_block_start, .literal = "/*" },
         .{ .kind = Token.TokenKind.comment_block_end, .literal = "*/" },
@@ -644,6 +637,31 @@ test "tokenize c" {
 
     for (expected_tokens) |et| {
         actual_token = try l.nextToken();
+
+        try std.testing.expectEqual(et.kind, actual_token.kind);
+        try std.testing.expectEqualStrings(et.literal, actual_token.literal);
+    }
+
+    try std.testing.expect(l.position > l.input.len);
+    try std.testing.expect(l.read_position > l.input.len);
+    try std.testing.expectEqual(0, l.ch);
+}
+
+test "decimal float" {
+    var l: Self = Self.init(
+        \\ .1234
+    );
+
+    const expected_tokens = [_]Token{
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = ".1234" },
+        .{ .kind = Token.TokenKind.eof, .literal = "" },
+    };
+
+    try std.testing.expectEqual(0, l.position);
+    try std.testing.expectEqual(1, l.read_position);
+
+    for (expected_tokens) |et| {
+        const actual_token = try l.nextToken();
 
         try std.testing.expectEqual(et.kind, actual_token.kind);
         try std.testing.expectEqualStrings(et.literal, actual_token.literal);
