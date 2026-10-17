@@ -465,6 +465,76 @@ fn takeHexadecimal(self: *Self, number_type: *NumberType) !void {
     try self.setNumberType(number_type);
 }
 
+test "keywords" {
+    var l: Self = Self.init(
+        \\ auto break case char const continue
+        \\ default do double else enum extern
+        \\ float for goto if inline int long
+        \\ register restrict return short signed
+        \\ sizeof static struct switch typedef
+        \\ union unsigned void volatile while
+        \\ _Bool _Complex _Imaginary __func__
+    );
+
+    const expected_tokens = [_]Token{
+        .{ .kind = Token.TokenKind.auto, .literal = "auto" },
+        .{ .kind = Token.TokenKind.break_kw, .literal = "break" },
+        .{ .kind = Token.TokenKind.case, .literal = "case" },
+        .{ .kind = Token.TokenKind.char, .literal = "char" },
+        .{ .kind = Token.TokenKind.const_kw, .literal = "const" },
+        .{ .kind = Token.TokenKind.continue_kw, .literal = "continue" },
+        .{ .kind = Token.TokenKind.default, .literal = "default" },
+        .{ .kind = Token.TokenKind.do, .literal = "do" },
+        .{ .kind = Token.TokenKind.double, .literal = "double" },
+        .{ .kind = Token.TokenKind.else_kw, .literal = "else" },
+        .{ .kind = Token.TokenKind.enum_kw, .literal = "enum" },
+        .{ .kind = Token.TokenKind.extern_kw, .literal = "extern" },
+        .{ .kind = Token.TokenKind.float, .literal = "float" },
+        .{ .kind = Token.TokenKind.for_kw, .literal = "for" },
+        .{ .kind = Token.TokenKind.goto, .literal = "goto" },
+        .{ .kind = Token.TokenKind.if_kw, .literal = "if" },
+        .{ .kind = Token.TokenKind.inline_kw, .literal = "inline" },
+        .{ .kind = Token.TokenKind.int, .literal = "int" },
+        .{ .kind = Token.TokenKind.long, .literal = "long" },
+        .{ .kind = Token.TokenKind.register, .literal = "register" },
+        .{ .kind = Token.TokenKind.restrict, .literal = "restrict" },
+        .{ .kind = Token.TokenKind.return_kw, .literal = "return" },
+        .{ .kind = Token.TokenKind.short, .literal = "short" },
+        .{ .kind = Token.TokenKind.signed, .literal = "signed" },
+        .{ .kind = Token.TokenKind.sizeof, .literal = "sizeof" },
+        .{ .kind = Token.TokenKind.static, .literal = "static" },
+        .{ .kind = Token.TokenKind.struct_kw, .literal = "struct" },
+        .{ .kind = Token.TokenKind.switch_kw, .literal = "switch" },
+        .{ .kind = Token.TokenKind.typedef, .literal = "typedef" },
+        .{ .kind = Token.TokenKind.union_kw, .literal = "union" },
+        .{ .kind = Token.TokenKind.unsigned, .literal = "unsigned" },
+        .{ .kind = Token.TokenKind.void_kw, .literal = "void" },
+        .{ .kind = Token.TokenKind.volatile_kw, .literal = "volatile" },
+        .{ .kind = Token.TokenKind.while_kw, .literal = "while" },
+        .{ .kind = Token.TokenKind._Bool, .literal = "_Bool" },
+        .{ .kind = Token.TokenKind._Complex, .literal = "_Complex" },
+        .{ .kind = Token.TokenKind._Imaginary, .literal = "_Imaginary" },
+        .{ .kind = Token.TokenKind.func, .literal = "__func__" },
+        .{ .kind = Token.TokenKind.eof, .literal = "" },
+    };
+
+    var actual_token: Token = undefined;
+
+    try std.testing.expectEqual(0, l.position);
+    try std.testing.expectEqual(1, l.read_position);
+
+    for (expected_tokens) |et| {
+        actual_token = try l.nextToken();
+
+        try std.testing.expectEqual(et.kind, actual_token.kind);
+        try std.testing.expectEqualStrings(et.literal, actual_token.literal);
+    }
+
+    try std.testing.expect(l.position > l.input.len);
+    try std.testing.expect(l.read_position > l.input.len);
+    try std.testing.expectEqual(0, l.ch);
+}
+
 test "tokenize c" {
     var l: Self = Self.init(
         \\ auto break case char const continue
