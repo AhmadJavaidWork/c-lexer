@@ -627,6 +627,35 @@ test "octal numbers" {
     try std.testing.expectEqual(0, l.ch);
 }
 
+test "hexadecimal numbers" {
+    var l: Self = Self.init(
+        \\ 0x1234 0X1234 -0x1234
+    );
+
+    const expected_tokens = [_]Token{
+        .{ .kind = Token.TokenKind.hex_number, .literal = "0x1234" },
+        .{ .kind = Token.TokenKind.hex_number, .literal = "0X1234" },
+        .{ .kind = Token.TokenKind.negative_hex_number, .literal = "-0x1234" },
+        .{ .kind = Token.TokenKind.eof, .literal = "" },
+    };
+
+    var actual_token: Token = undefined;
+
+    try std.testing.expectEqual(0, l.position);
+    try std.testing.expectEqual(1, l.read_position);
+
+    for (expected_tokens) |et| {
+        actual_token = try l.nextToken();
+
+        try std.testing.expectEqual(et.kind, actual_token.kind);
+        try std.testing.expectEqualStrings(et.literal, actual_token.literal);
+    }
+
+    try std.testing.expect(l.position > l.input.len);
+    try std.testing.expect(l.read_position > l.input.len);
+    try std.testing.expectEqual(0, l.ch);
+}
+
 test "tokenize c" {
     var l: Self = Self.init(
         \\ auto break case char const continue
