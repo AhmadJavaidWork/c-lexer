@@ -60,29 +60,6 @@ pub fn nextToken(self: *Self) !Token {
                     self.takeChar();
                     return error.InvalidToken;
                 }
-            } else if (utils.isDigit(self.peekChar())) {
-                var number_type: NumberType = .{ .float = true };
-                const start: usize = self.position;
-                self.takeChar();
-                try self.takeNumber(&number_type);
-                const kind: Token.TokenKind = if (number_type.unsigned) blk: {
-                    if (number_type.long1 and number_type.long2) {
-                        break :blk Token.TokenKind.decimal_float_unsigned_long_long_number;
-                    } else if (number_type.long1) {
-                        break :blk Token.TokenKind.decimal_float_unsigned_long_number;
-                    } else {
-                        break :blk Token.TokenKind.decimal_float_unsigned_number;
-                    }
-                } else blk: {
-                    if (number_type.long1 and number_type.long2) {
-                        break :blk Token.TokenKind.decimal_float_long_long_number;
-                    } else if (number_type.long1) {
-                        break :blk Token.TokenKind.decimal_float_long_number;
-                    } else {
-                        break :blk Token.TokenKind.decimal_float_number;
-                    }
-                };
-                token = Token.new(kind, self.input[start..self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.dot);
             }
@@ -105,13 +82,7 @@ pub fn nextToken(self: *Self) !Token {
                     var number_type: NumberType = .{};
                     try self.takeHexadecimal(&number_type);
                     const kind: Token.TokenKind = try if (number_type.unsigned) error.NegativeUnsignedNumber else blk: {
-                        if (number_type.long1 and number_type.long2 and number_type.float) {
-                            break :blk Token.TokenKind.negative_hex_float_long_long_number;
-                        } else if (number_type.long1 and number_type.float) {
-                            break :blk Token.TokenKind.negative_hex_float_long_number;
-                        } else if (number_type.float) {
-                            break :blk Token.TokenKind.negative_hex_float_number;
-                        } else if (number_type.long1 and number_type.long2) {
+                        if (number_type.long1 and number_type.long2) {
                             break :blk Token.TokenKind.negative_hex_long_long_number;
                         } else if (number_type.long1) {
                             break :blk Token.TokenKind.negative_hex_long_number;
@@ -140,13 +111,7 @@ pub fn nextToken(self: *Self) !Token {
                 var number_type: NumberType = .{};
                 try self.takeNumber(&number_type);
                 const kind: Token.TokenKind = try if (number_type.unsigned) error.NegativeUnsignedNumber else blk: {
-                    if (number_type.long1 and number_type.long2 and number_type.float) {
-                        break :blk Token.TokenKind.negative_decimal_float_long_long_number;
-                    } else if (number_type.long1 and number_type.float) {
-                        break :blk Token.TokenKind.negative_decimal_float_long_number;
-                    } else if (number_type.float) {
-                        break :blk Token.TokenKind.negative_decimal_float_number;
-                    } else if (number_type.long1 and number_type.long2) {
+                    if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.negative_decimal_long_long_number;
                     } else if (number_type.long1) {
                         break :blk Token.TokenKind.negative_decimal_long_number;
@@ -315,13 +280,7 @@ pub fn nextToken(self: *Self) !Token {
                 var number_type: NumberType = .{};
                 try self.takeHexadecimal(&number_type);
                 const kind: Token.TokenKind = if (number_type.unsigned) blk: {
-                    if (number_type.long1 and number_type.long2 and number_type.float) {
-                        break :blk Token.TokenKind.hex_float_unsigned_long_long_number;
-                    } else if (number_type.long1 and number_type.float) {
-                        break :blk Token.TokenKind.hex_float_unsigned_long_number;
-                    } else if (number_type.float) {
-                        break :blk Token.TokenKind.hex_float_unsigned_number;
-                    } else if (number_type.long1 and number_type.long2) {
+                    if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.hex_unsigned_long_long_number;
                     } else if (number_type.long1) {
                         break :blk Token.TokenKind.hex_unsigned_long_number;
@@ -329,13 +288,7 @@ pub fn nextToken(self: *Self) !Token {
                         break :blk Token.TokenKind.hex_unsigned_number;
                     }
                 } else blk: {
-                    if (number_type.long1 and number_type.long2 and number_type.float) {
-                        break :blk Token.TokenKind.hex_float_long_long_number;
-                    } else if (number_type.long1 and number_type.float) {
-                        break :blk Token.TokenKind.hex_float_long_number;
-                    } else if (number_type.float) {
-                        break :blk Token.TokenKind.hex_float_number;
-                    } else if (number_type.long1 and number_type.long2) {
+                    if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.hex_long_long_number;
                     } else if (number_type.long1) {
                         break :blk Token.TokenKind.hex_long_number;
@@ -385,13 +338,7 @@ pub fn nextToken(self: *Self) !Token {
                 try self.takeNumber(&number_type);
 
                 const kind: Token.TokenKind = if (number_type.unsigned) blk: {
-                    if (number_type.long1 and number_type.long2 and number_type.float) {
-                        break :blk Token.TokenKind.decimal_float_unsigned_long_long_number;
-                    } else if (number_type.long1 and number_type.float) {
-                        break :blk Token.TokenKind.decimal_float_unsigned_long_number;
-                    } else if (number_type.float) {
-                        break :blk Token.TokenKind.decimal_float_unsigned_number;
-                    } else if (number_type.long1 and number_type.long2) {
+                    if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.decimal_unsigned_long_long_number;
                     } else if (number_type.long1) {
                         break :blk Token.TokenKind.decimal_unsigned_long_number;
@@ -399,13 +346,7 @@ pub fn nextToken(self: *Self) !Token {
                         break :blk Token.TokenKind.decimal_unsigned_number;
                     }
                 } else blk: {
-                    if (number_type.long1 and number_type.long2 and number_type.float) {
-                        break :blk Token.TokenKind.decimal_float_long_long_number;
-                    } else if (number_type.long1 and number_type.float) {
-                        break :blk Token.TokenKind.decimal_float_long_number;
-                    } else if (number_type.float) {
-                        break :blk Token.TokenKind.decimal_float_number;
-                    } else if (number_type.long1 and number_type.long2) {
+                    if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.decimal_long_long_number;
                     } else if (number_type.long1) {
                         break :blk Token.TokenKind.decimal_long_number;
@@ -415,7 +356,6 @@ pub fn nextToken(self: *Self) !Token {
                 };
                 token = Token.new(kind, self.input[start..self.read_position]);
             } else {
-                std.debug.print("char: {any}\n", .{self.ch});
                 self.takeChar();
                 return error.InvalidToken;
             }
@@ -472,7 +412,7 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
                 self.takeChar();
             },
             'l', 'L' => {
-                if (number_type.*.long1 and number_type.*.long2) {
+                if ((number_type.*.long1 and number_type.*.long2) or (number_type.*.float and number_type.*.long1)) {
                     return error.InvalidNumber;
                 } else if (number_type.*.long1) {
                     number_type.*.long2 = true;
@@ -522,14 +462,7 @@ fn takeOctal(self: *Self, number_type: *NumberType) !void {
 }
 
 fn takeHexadecimal(self: *Self, number_type: *NumberType) !void {
-    while (utils.isHexadecimalDigit(self.peekChar()) or self.peekChar() == '.') {
-        if (self.peekChar() == '.') {
-            if (number_type.*.float) {
-                return error.InvalidNumber;
-            } else {
-                number_type.*.float = true;
-            }
-        }
+    while (utils.isHexadecimalDigit(self.peekChar())) {
         self.takeChar();
     }
 
@@ -554,11 +487,7 @@ test "tokenize c" {
         \\ -0x1234LL -0x1234lL -0x1234Ll 0x1234u 0x1234l
         \\ 0x1234L 0x1234U 0x1234lu 0x1234LU 0x1234Lu
         \\ 0x1234llu -01234l -01234ll -01234LL 01234u
-        \\ 01234UL 01234ull -1234.1234 -1234.1234l
-        \\ -1234.1234LL 1234.1234ull 1234.1234l -0x12ab.12ab
-        \\ -0x12ab.12abll 0x12ab.12ab 0x12ab.12abull
-        \\ .1234 .1234l .1234ul .1234ull .1234e-10ll
-        \\ .1234e+10ll .1234e10ll
+        \\ 01234UL 01234ull 
         \\ [](){}.->++--&*+-~!/%<<>><><=>===!=^|&&||?:;...=*=/=%=+=-=<<=>>=&=^=|=<::><%%>///**/
     );
 
@@ -652,22 +581,6 @@ test "tokenize c" {
         .{ .kind = Token.TokenKind.octal_unsigned_number, .literal = "01234u" },
         .{ .kind = Token.TokenKind.octal_unsigned_long_number, .literal = "01234UL" },
         .{ .kind = Token.TokenKind.octal_unsigned_long_long_number, .literal = "01234ull" },
-        .{ .kind = Token.TokenKind.negative_decimal_float_number, .literal = "-1234.1234" },
-        .{ .kind = Token.TokenKind.negative_decimal_float_long_number, .literal = "-1234.1234l" },
-        .{ .kind = Token.TokenKind.negative_decimal_float_long_long_number, .literal = "-1234.1234LL" },
-        .{ .kind = Token.TokenKind.decimal_float_unsigned_long_long_number, .literal = "1234.1234ull" },
-        .{ .kind = Token.TokenKind.decimal_float_long_number, .literal = "1234.1234l" },
-        .{ .kind = Token.TokenKind.negative_hex_float_number, .literal = "-0x12ab.12ab" },
-        .{ .kind = Token.TokenKind.negative_hex_float_long_long_number, .literal = "-0x12ab.12abll" },
-        .{ .kind = Token.TokenKind.hex_float_number, .literal = "0x12ab.12ab" },
-        .{ .kind = Token.TokenKind.hex_float_unsigned_long_long_number, .literal = "0x12ab.12abull" },
-        .{ .kind = Token.TokenKind.decimal_float_number, .literal = ".1234" },
-        .{ .kind = Token.TokenKind.decimal_float_long_number, .literal = ".1234l" },
-        .{ .kind = Token.TokenKind.decimal_float_unsigned_long_number, .literal = ".1234ul" },
-        .{ .kind = Token.TokenKind.decimal_float_unsigned_long_long_number, .literal = ".1234ull" },
-        .{ .kind = Token.TokenKind.decimal_float_long_long_number, .literal = ".1234e-10ll" },
-        .{ .kind = Token.TokenKind.decimal_float_long_long_number, .literal = ".1234e+10ll" },
-        .{ .kind = Token.TokenKind.decimal_float_long_long_number, .literal = ".1234e10ll" },
         .{ .kind = Token.TokenKind.open_bracket, .literal = "[" },
         .{ .kind = Token.TokenKind.close_bracket, .literal = "]" },
         .{ .kind = Token.TokenKind.open_paren, .literal = "(" },
