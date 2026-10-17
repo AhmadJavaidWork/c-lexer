@@ -651,12 +651,13 @@ test "tokenize c" {
 
 test "decimal float" {
     var l: Self = Self.init(
-        \\ .1234 1234.1234
+        \\ .1234 1234.1234 1234.
     );
 
     const expected_tokens = [_]Token{
         .{ .kind = Token.TokenKind.decimal_float_number, .literal = ".1234" },
         .{ .kind = Token.TokenKind.decimal_float_number, .literal = "1234.1234" },
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = "1234." },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
