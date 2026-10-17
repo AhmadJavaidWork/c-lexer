@@ -128,6 +128,7 @@ pub const TokenKind = enum(u16) {
     negative_octal_long_long_number,
 
     // float constants
+    decimal_float_number,
 };
 
 kind: TokenKind,
