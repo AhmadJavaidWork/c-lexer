@@ -13,6 +13,8 @@ const NumberType = struct {
     unsigned: bool = false,
     long1: bool = false,
     long2: bool = false,
+    float: bool = false,
+    float_suffix: bool = false,
 };
 
 pub fn init(input: []const u8) Self {
@@ -58,6 +60,17 @@ pub fn nextToken(self: *Self) !Token {
                     self.takeChar();
                     return error.InvalidToken;
                 }
+            } else if (utils.isDigit(self.peekChar())) {
+                const start: usize = self.position;
+                self.takeChar();
+                var number_type: NumberType = .{ .float = true };
+                try self.takeDecimal(&number_type);
+                const kind: Token.TokenKind = if (number_type.long1) blk: {
+                    break :blk Token.TokenKind.decimal_float_long_number;
+                } else if (number_type.float_suffix) blk: {
+                    break :blk Token.TokenKind.decimal_float_suffix_number;
+                } else Token.TokenKind.decimal_float_number;
+                token = .{ .kind = kind, .literal = self.input[start..self.read_position] };
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.dot);
             }
@@ -276,7 +289,12 @@ pub fn nextToken(self: *Self) !Token {
                 self.takeChar();
                 var number_type: NumberType = .{ .float = true };
                 try self.takeDecimal(&number_type);
-                token = .{ .kind = Token.TokenKind.decimal_float_number, .literal = self.input[start..self.read_position] };
+                const kind: Token.TokenKind = if (number_type.long1) blk: {
+                    break :blk Token.TokenKind.decimal_float_long_number;
+                } else if (number_type.float_suffix) blk: {
+                    break :blk Token.TokenKind.decimal_float_suffix_number;
+                } else Token.TokenKind.decimal_float_number;
+                token = .{ .kind = kind, .literal = self.input[start..self.read_position] };
             } else {
                 return error.InvalidToken;
             }
@@ -295,7 +313,15 @@ pub fn nextToken(self: *Self) !Token {
                 const start: usize = self.position;
                 var number_type: NumberType = .{};
                 try self.takeDecimal(&number_type);
-                const kind: Token.TokenKind = if (number_type.unsigned) blk: {
+                const kind: Token.TokenKind = if (number_type.float) blk: {
+                    if (number_type.long1) {
+                        break :blk Token.TokenKind.decimal_float_long_number;
+                    } else if (number_type.float_suffix) {
+                        break :blk Token.TokenKind.decimal_float_suffix_number;
+                    } else {
+                        break :blk Token.TokenKind.decimal_float_number;
+                    }
+                } else if (number_type.unsigned) blk: {
                     if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.decimal_unsigned_long_long_number;
                     } else if (number_type.long1) {
@@ -397,6 +423,8 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
             'l', 'L' => {
                 if (number_type.*.long1 and number_type.*.long2) {
                     return error.InvalidNumberPrefix;
+                } else if (number_type.*.float_suffix) {
+                    return error.InvalidFloatNumberSuffix;
                 } else {
                     self.takeChar();
                     number_type.*.long1 = true;
@@ -410,15 +438,26 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
                 }
             },
             'u', 'U' => {
-                if (number_type.*.unsigned) {
-                    return error.InvalidNumberPrefix;
+                if (number_type.*.float) {
+                    return error.InvalidFloatNumberSuffix;
+                } else if (number_type.*.unsigned) {
+                    return error.InvalidNumberSuffix;
                 } else {
                     number_type.*.unsigned = true;
+                    self.takeChar();
                 }
-                self.takeChar();
+            },
+            'f', 'F' => {
+                if (number_type.*.long1) {
+                    return error.InvalidFloatNumberSuffix;
+                } else {
+                    number_type.*.float = true;
+                    number_type.*.float_suffix = true;
+                    self.takeChar();
+                }
             },
             ' ', '\t', '\n', '\r', 0 => break :blk,
-            else => return error.InvalidNumberPrefix,
+            else => return error.InvalidNumberSuffix,
         }
     }
 }
@@ -604,7 +643,7 @@ test "punctuators" {
 test "decimal numbers" {
     var l = Self.init(
         \\ 1234 1234u 1234U 1234l 1234L 1234ll 1234LL 1234ul 1234ull 1234lu
-        \\ 1234llu 0.1234
+        \\ 1234llu 0.1234 0.1234f 0.1234l .1234 .1234f
     );
 
     const expected_tokens = [_]Token{
@@ -620,6 +659,10 @@ test "decimal numbers" {
         .{ .kind = Token.TokenKind.decimal_unsigned_long_number, .literal = "1234lu" },
         .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234llu" },
         .{ .kind = Token.TokenKind.decimal_float_number, .literal = "0.1234" },
+        .{ .kind = Token.TokenKind.decimal_float_suffix_number, .literal = "0.1234f" },
+        .{ .kind = Token.TokenKind.decimal_float_long_number, .literal = "0.1234l" },
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = ".1234" },
+        .{ .kind = Token.TokenKind.decimal_float_suffix_number, .literal = ".1234f" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
