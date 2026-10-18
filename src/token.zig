@@ -103,6 +103,10 @@ pub const TokenKind = enum(u16) {
     decimal_unsigned_number,
     decimal_unsigned_long_number,
     decimal_unsigned_long_long_number,
+
+    decimal_negative_number,
+    decimal_negative_long_number,
+    decimal_negative_long_long_number,
 };
 
 kind: TokenKind,
