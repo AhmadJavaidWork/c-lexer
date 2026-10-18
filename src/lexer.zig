@@ -72,21 +72,6 @@ pub fn nextToken(self: *Self) !Token {
             } else if (self.peekChar() == '=') {
                 self.takeChar();
                 token = Token.new(Token.TokenKind.compound_subtraction, self.input[self.position - 1 .. self.read_position]);
-            } else if (utils.isNonZeroDigit(self.peekChar())) {
-                const start: usize = self.position;
-                self.takeChar();
-                var number_type: NumberType = .{};
-                try self.takeNumber(&number_type);
-                const kind: Token.TokenKind = if (number_type.unsigned) return error.InvalidNumberPrefix else blk: {
-                    if (number_type.long1 and number_type.long2) {
-                        break :blk Token.TokenKind.decimal_negative_long_long_number;
-                    } else if (number_type.long1) {
-                        break :blk Token.TokenKind.decimal_negative_long_number;
-                    } else {
-                        break :blk Token.TokenKind.decimal_negative_number;
-                    }
-                };
-                token = Token.new(kind, self.input[start..self.read_position]);
             } else {
                 token = self.prepareCurrentToken(Token.TokenKind.minus);
             }
@@ -553,9 +538,6 @@ test "decimal numbers" {
         .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ull" },
         .{ .kind = Token.TokenKind.decimal_unsigned_long_number, .literal = "1234lu" },
         .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234llu" },
-        .{ .kind = Token.TokenKind.decimal_negative_number, .literal = "-1234" },
-        .{ .kind = Token.TokenKind.decimal_negative_long_number, .literal = "-1234l" },
-        .{ .kind = Token.TokenKind.decimal_negative_long_long_number, .literal = "-1234ll" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
