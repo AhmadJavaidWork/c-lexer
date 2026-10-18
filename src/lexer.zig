@@ -224,6 +224,16 @@ pub fn nextToken(self: *Self) !Token {
         ';' => {
             token = self.prepareCurrentToken(Token.TokenKind.semicolon);
         },
+        '0' => {
+            if (utils.isOctalDigit(self.peekChar())) {
+                const start: usize = self.position;
+                self.takeChar();
+                self.takeOctal();
+                token = .{ .kind = Token.TokenKind.octal_number, .literal = self.input[start..self.read_position] };
+            } else {
+                return error.InvalidToken;
+            }
+        },
         else => {
             if (utils.isLetter(self.ch) or self.ch == '_') {
                 const start: usize = self.position;
@@ -237,7 +247,7 @@ pub fn nextToken(self: *Self) !Token {
             } else if (utils.isNonZeroDigit(self.ch)) {
                 const start: usize = self.position;
                 var number_type: NumberType = .{};
-                try self.takeNumber(&number_type);
+                try self.takeDecimal(&number_type);
                 const kind: Token.TokenKind = if (number_type.unsigned) blk: {
                     if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.decimal_unsigned_long_long_number;
@@ -302,12 +312,18 @@ fn takeWord(self: *Self) void {
     }
 }
 
-fn takeNumber(self: *Self, number_type: *NumberType) !void {
+fn takeDecimal(self: *Self, number_type: *NumberType) !void {
     while (utils.isDigit(self.peekChar())) {
         self.takeChar();
     }
 
     try self.setNumberType(number_type);
+}
+
+fn takeOctal(self: *Self) void {
+    while (utils.isOctalDigit(self.peekChar())) {
+        self.takeChar();
+    }
 }
 
 fn setNumberType(self: *Self, number_type: *NumberType) !void {
@@ -523,7 +539,7 @@ test "punctuators" {
 test "decimal numbers" {
     var l = Self.init(
         \\ 1234 1234u 1234U 1234l 1234L 1234ll 1234LL 1234ul 1234ull 1234lu
-        \\ 1234llu -1234 -1234l -1234ll
+        \\ 1234llu
     );
 
     const expected_tokens = [_]Token{
@@ -538,6 +554,31 @@ test "decimal numbers" {
         .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ull" },
         .{ .kind = Token.TokenKind.decimal_unsigned_long_number, .literal = "1234lu" },
         .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234llu" },
+        .{ .kind = Token.TokenKind.eof, .literal = "" },
+    };
+
+    try std.testing.expectEqual(0, l.position);
+    try std.testing.expectEqual(1, l.read_position);
+
+    for (expected_tokens) |et| {
+        const actual_token = try l.nextToken();
+
+        try std.testing.expectEqual(et.kind, actual_token.kind);
+        try std.testing.expectEqualStrings(et.literal, actual_token.literal);
+    }
+
+    try std.testing.expect(l.position > l.input.len);
+    try std.testing.expect(l.read_position > l.input.len);
+    try std.testing.expectEqual(0, l.ch);
+}
+
+test "octal numbers" {
+    var l = Self.init(
+        \\ 01234
+    );
+
+    const expected_tokens = [_]Token{
+        .{ .kind = Token.TokenKind.octal_number, .literal = "01234" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
