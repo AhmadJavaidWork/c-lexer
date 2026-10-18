@@ -104,6 +104,8 @@ pub const TokenKind = enum(u16) {
     decimal_unsigned_long_number,
     decimal_unsigned_long_long_number,
 
+    decimal_float_number,
+
     // octal-constants
     octal_number,
     octal_long_number,
