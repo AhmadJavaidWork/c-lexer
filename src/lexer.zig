@@ -228,8 +228,26 @@ pub fn nextToken(self: *Self) !Token {
             if (utils.isOctalDigit(self.peekChar())) {
                 const start: usize = self.position;
                 self.takeChar();
-                self.takeOctal();
-                token = .{ .kind = Token.TokenKind.octal_number, .literal = self.input[start..self.read_position] };
+                var number_type: NumberType = .{};
+                try self.takeOctal(&number_type);
+                const kind: Token.TokenKind = if (number_type.unsigned) blk: {
+                    if (number_type.long1 and number_type.long2) {
+                        break :blk Token.TokenKind.octal_unsigned_long_long_number;
+                    } else if (number_type.long1) {
+                        break :blk Token.TokenKind.octal_unsigned_long_number;
+                    } else {
+                        break :blk Token.TokenKind.octal_unsigned_number;
+                    }
+                } else blk: {
+                    if (number_type.long1 and number_type.long2) {
+                        break :blk Token.TokenKind.octal_long_long_number;
+                    } else if (number_type.long1) {
+                        break :blk Token.TokenKind.octal_long_number;
+                    } else {
+                        break :blk Token.TokenKind.octal_number;
+                    }
+                };
+                token = .{ .kind = kind, .literal = self.input[start..self.read_position] };
             } else {
                 return error.InvalidToken;
             }
@@ -320,10 +338,12 @@ fn takeDecimal(self: *Self, number_type: *NumberType) !void {
     try self.setNumberType(number_type);
 }
 
-fn takeOctal(self: *Self) void {
+fn takeOctal(self: *Self, number_type: *NumberType) !void {
     while (utils.isOctalDigit(self.peekChar())) {
         self.takeChar();
     }
+
+    try self.setNumberType(number_type);
 }
 
 fn setNumberType(self: *Self, number_type: *NumberType) !void {
@@ -574,11 +594,12 @@ test "decimal numbers" {
 
 test "octal numbers" {
     var l = Self.init(
-        \\ 01234
+        \\ 01234 01234ull
     );
 
     const expected_tokens = [_]Token{
         .{ .kind = Token.TokenKind.octal_number, .literal = "01234" },
+        .{ .kind = Token.TokenKind.octal_unsigned_long_long_number, .literal = "01234ull" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 

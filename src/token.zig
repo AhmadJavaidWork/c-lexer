@@ -106,6 +106,11 @@ pub const TokenKind = enum(u16) {
 
     // octal-constants
     octal_number,
+    octal_long_number,
+    octal_long_long_number,
+    octal_unsigned_number,
+    octal_unsigned_long_number,
+    octal_unsigned_long_long_number,
 };
 
 kind: TokenKind,
