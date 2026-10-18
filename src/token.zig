@@ -114,6 +114,11 @@ pub const TokenKind = enum(u16) {
 
     // hexadecimal-constants
     hexadecimal_number,
+    hexadecimal_long_number,
+    hexadecimal_long_long_number,
+    hexadecimal_unsigned_number,
+    hexadecimal_unsigned_long_number,
+    hexadecimal_unsigned_long_long_number,
 };
 
 kind: TokenKind,
