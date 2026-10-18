@@ -15,6 +15,7 @@ const NumberType = struct {
     long2: bool = false,
     float: bool = false,
     float_suffix: bool = false,
+    exponential: bool = false,
 };
 
 pub fn init(input: []const u8) Self {
@@ -421,7 +422,7 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
     blk: while (true) {
         switch (self.peekChar()) {
             'l', 'L' => {
-                if (number_type.*.long1 and number_type.*.long2) {
+                if (number_type.*.long1) {
                     return error.InvalidNumberPrefix;
                 } else if (number_type.*.float_suffix) {
                     return error.InvalidFloatNumberSuffix;
@@ -454,6 +455,27 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
                     number_type.*.float = true;
                     number_type.*.float_suffix = true;
                     self.takeChar();
+                }
+            },
+            'e', 'E' => {
+                if (number_type.*.exponential) {
+                    return error.InvalidExponent;
+                } else if (number_type.*.float_suffix) {
+                    return error.InvalidFloatNumberSuffix;
+                } else {
+                    self.takeChar();
+                    if (self.peekChar() == '-' or self.peekChar() == '+') {
+                        self.takeChar();
+                    }
+                    if (!utils.isDigit(self.peekChar())) {
+                        return error.InvalidExponent;
+                    } else {
+                        while (utils.isDigit(self.peekChar())) {
+                            self.takeChar();
+                        }
+                    }
+                    number_type.*.exponential = true;
+                    number_type.*.float = true;
                 }
             },
             ' ', '\t', '\n', '\r', 0 => break :blk,
@@ -643,7 +665,8 @@ test "punctuators" {
 test "decimal numbers" {
     var l = Self.init(
         \\ 1234 1234u 1234U 1234l 1234L 1234ll 1234LL 1234ul 1234ull 1234lu
-        \\ 1234llu 0.1234 0.1234f 0.1234l .1234 .1234f
+        \\ 1234llu 0.1234 0.1234f 0.1234l .1234 .1234f .1234e-10f .1234e+10l
+        \\ 1234.1234 1234e-10f 1234e-10
     );
 
     const expected_tokens = [_]Token{
@@ -663,6 +686,11 @@ test "decimal numbers" {
         .{ .kind = Token.TokenKind.decimal_float_long_number, .literal = "0.1234l" },
         .{ .kind = Token.TokenKind.decimal_float_number, .literal = ".1234" },
         .{ .kind = Token.TokenKind.decimal_float_suffix_number, .literal = ".1234f" },
+        .{ .kind = Token.TokenKind.decimal_float_suffix_number, .literal = ".1234e-10f" },
+        .{ .kind = Token.TokenKind.decimal_float_long_number, .literal = ".1234e+10l" },
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = "1234.1234" },
+        .{ .kind = Token.TokenKind.decimal_float_suffix_number, .literal = "1234e-10f" },
+        .{ .kind = Token.TokenKind.decimal_float_number, .literal = "1234e-10" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
