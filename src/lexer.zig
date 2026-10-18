@@ -248,6 +248,11 @@ pub fn nextToken(self: *Self) !Token {
                     }
                 };
                 token = .{ .kind = kind, .literal = self.input[start..self.read_position] };
+            } else if (self.peekChar() == 'x' or self.peekChar() == 'X') {
+                const start: usize = self.position;
+                self.takeChar();
+                self.takeHexadecimal();
+                token = .{ .kind = Token.TokenKind.hexadecimal_number, .literal = self.input[start..self.read_position] };
             } else {
                 return error.InvalidToken;
             }
@@ -344,6 +349,12 @@ fn takeOctal(self: *Self, number_type: *NumberType) !void {
     }
 
     try self.setNumberType(number_type);
+}
+
+fn takeHexadecimal(self: *Self) void {
+    while (utils.isHexadecimalDigit(self.peekChar())) {
+        self.takeChar();
+    }
 }
 
 fn setNumberType(self: *Self, number_type: *NumberType) !void {
@@ -600,6 +611,31 @@ test "octal numbers" {
     const expected_tokens = [_]Token{
         .{ .kind = Token.TokenKind.octal_number, .literal = "01234" },
         .{ .kind = Token.TokenKind.octal_unsigned_long_long_number, .literal = "01234ull" },
+        .{ .kind = Token.TokenKind.eof, .literal = "" },
+    };
+
+    try std.testing.expectEqual(0, l.position);
+    try std.testing.expectEqual(1, l.read_position);
+
+    for (expected_tokens) |et| {
+        const actual_token = try l.nextToken();
+
+        try std.testing.expectEqual(et.kind, actual_token.kind);
+        try std.testing.expectEqualStrings(et.literal, actual_token.literal);
+    }
+
+    try std.testing.expect(l.position > l.input.len);
+    try std.testing.expect(l.read_position > l.input.len);
+    try std.testing.expectEqual(0, l.ch);
+}
+
+test "hexadecimal numbers" {
+    var l = Self.init(
+        \\ 0x1234
+    );
+
+    const expected_tokens = [_]Token{
+        .{ .kind = Token.TokenKind.hexadecimal_number, .literal = "0x1234" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
