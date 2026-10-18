@@ -9,6 +9,12 @@ read_position: usize = 0,
 
 const Self = @This();
 
+const NumberType = struct {
+    unsigned: bool = false,
+    long1: bool = false,
+    long2: bool = false,
+};
+
 pub fn init(input: []const u8) Self {
     var l: Self = .{ .input = input };
     l.takeChar();
@@ -228,6 +234,28 @@ pub fn nextToken(self: *Self) !Token {
                     const kind = Token.keywordToTokenKind(self.input[start..self.read_position]) orelse Token.TokenKind.ident;
                     token = Token.new(kind, self.input[start..self.read_position]);
                 }
+            } else if (utils.isNonZeroDigit(self.ch)) {
+                const start: usize = self.position;
+                var number_type: NumberType = .{};
+                try self.takeNumber(&number_type);
+                const kind: Token.TokenKind = if (number_type.unsigned) blk: {
+                    if (number_type.long1 and number_type.long2) {
+                        break :blk Token.TokenKind.decimal_unsigned_long_long_number;
+                    } else if (number_type.long1) {
+                        break :blk Token.TokenKind.decimal_unsigned_long_number;
+                    } else {
+                        break :blk Token.TokenKind.decimal_unsigned_number;
+                    }
+                } else blk: {
+                    if (number_type.long1 and number_type.long2) {
+                        break :blk Token.TokenKind.decimal_long_long_number;
+                    } else if (number_type.long1) {
+                        break :blk Token.TokenKind.decimal_long_number;
+                    } else {
+                        break :blk Token.TokenKind.decimal_number;
+                    }
+                };
+                token = Token.new(kind, self.input[start..self.read_position]);
             } else {
                 self.takeChar();
                 return error.InvalidToken;
@@ -271,6 +299,46 @@ fn peekChar(self: *Self) u8 {
 fn takeWord(self: *Self) void {
     while (utils.isLetter(self.peekChar()) or utils.isDigit(self.peekChar()) or self.peekChar() == '_') {
         self.takeChar();
+    }
+}
+
+fn takeNumber(self: *Self, number_type: *NumberType) !void {
+    while (utils.isDigit(self.peekChar())) {
+        self.takeChar();
+    }
+
+    try self.setNumberType(number_type);
+}
+
+fn setNumberType(self: *Self, number_type: *NumberType) !void {
+    blk: while (true) {
+        switch (self.peekChar()) {
+            'l', 'L' => {
+                if (number_type.*.long1 and number_type.*.long2) {
+                    return error.InvalidNumberPrefix;
+                } else {
+                    self.takeChar();
+                    number_type.*.long1 = true;
+                    if ((self.ch == 'l' and self.peekChar() == 'L') or (self.ch == 'L' and self.peekChar() == 'l')) {
+                        return error.InvalidNumberPrefix;
+                    }
+                    if (self.peekChar() == 'l' or self.peekChar() == 'L') {
+                        number_type.*.long2 = true;
+                        self.takeChar();
+                    }
+                }
+            },
+            'u', 'U' => {
+                if (number_type.*.unsigned) {
+                    return error.InvalidNumberPrefix;
+                } else {
+                    number_type.*.unsigned = true;
+                }
+                self.takeChar();
+            },
+            ' ', '\t', '\n', '\r', 0 => break :blk,
+            else => return error.InvalidNumberPrefix,
+        }
     }
 }
 
@@ -442,6 +510,42 @@ test "punctuators" {
 
     for (expected_tokens) |et| {
         actual_token = try l.nextToken();
+
+        try std.testing.expectEqual(et.kind, actual_token.kind);
+        try std.testing.expectEqualStrings(et.literal, actual_token.literal);
+    }
+
+    try std.testing.expect(l.position > l.input.len);
+    try std.testing.expect(l.read_position > l.input.len);
+    try std.testing.expectEqual(0, l.ch);
+}
+
+test "decimal numbers" {
+    var l = Self.init(
+        \\ 1234 1234u 1234U 1234l 1234L 1234ll 1234LL 1234ul 1234ull 1234lu
+        \\ 1234llu
+    );
+
+    const expected_tokens = [_]Token{
+        .{ .kind = Token.TokenKind.decimal_number, .literal = "1234" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_number, .literal = "1234u" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_number, .literal = "1234U" },
+        .{ .kind = Token.TokenKind.decimal_long_number, .literal = "1234l" },
+        .{ .kind = Token.TokenKind.decimal_long_number, .literal = "1234L" },
+        .{ .kind = Token.TokenKind.decimal_long_long_number, .literal = "1234ll" },
+        .{ .kind = Token.TokenKind.decimal_long_long_number, .literal = "1234LL" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_number, .literal = "1234ul" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234ull" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_number, .literal = "1234lu" },
+        .{ .kind = Token.TokenKind.decimal_unsigned_long_long_number, .literal = "1234llu" },
+        .{ .kind = Token.TokenKind.eof, .literal = "" },
+    };
+
+    try std.testing.expectEqual(0, l.position);
+    try std.testing.expectEqual(1, l.read_position);
+
+    for (expected_tokens) |et| {
+        const actual_token = try l.nextToken();
 
         try std.testing.expectEqual(et.kind, actual_token.kind);
         try std.testing.expectEqualStrings(et.literal, actual_token.literal);

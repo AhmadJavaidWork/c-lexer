@@ -95,6 +95,14 @@ pub const TokenKind = enum(u16) {
     // identifier
     ident,
     func,
+
+    // integer constants
+    decimal_number,
+    decimal_long_number,
+    decimal_long_long_number,
+    decimal_unsigned_number,
+    decimal_unsigned_long_number,
+    decimal_unsigned_long_long_number,
 };
 
 kind: TokenKind,
