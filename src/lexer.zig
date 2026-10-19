@@ -19,6 +19,7 @@ const NumberType = struct {
     float: bool = false,
     float_suffix: bool = false,
     exponent: bool = false,
+    binary_exponent: bool = false,
 };
 
 pub fn init(input: []const u8) Self {
@@ -271,7 +272,13 @@ pub fn nextToken(self: *Self) !Token {
                 var number_type: NumberType = .{ .hexadecimal = true };
                 try self.takeHexadecimal(&number_type);
                 const kind: Token.TokenKind = if (number_type.float) blk: {
-                    break :blk Token.TokenKind.hexadecimal_float_number;
+                    if (number_type.long1) {
+                        break :blk Token.TokenKind.hexadecimal_float_long_number;
+                    } else if (number_type.float_suffix) {
+                        break :blk Token.TokenKind.hexadecimal_float_suffix_number;
+                    } else {
+                        break :blk Token.TokenKind.hexadecimal_float_number;
+                    }
                 } else if (number_type.unsigned) blk: {
                     if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.hexadecimal_unsigned_long_long_number;
@@ -428,6 +435,10 @@ fn takeHexadecimal(self: *Self, number_type: *NumberType) !void {
     }
 
     try self.setNumberType(number_type);
+
+    if (number_type.*.float and !number_type.*.binary_exponent) {
+        return error.InvalidHexadecimalFloat;
+    }
 }
 
 fn setNumberType(self: *Self, number_type: *NumberType) !void {
@@ -472,7 +483,7 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
                 }
             },
             'e', 'E' => {
-                if (number_type.*.octal or number_type.*.hexadecimal) {
+                if (!number_type.*.decimal) {
                     return error.InvalidSuffix;
                 } else if (number_type.*.exponent) {
                     return error.InvalidExponent;
@@ -491,6 +502,29 @@ fn setNumberType(self: *Self, number_type: *NumberType) !void {
                         }
                     }
                     number_type.*.exponent = true;
+                    number_type.*.float = true;
+                }
+            },
+            'p', 'P' => {
+                if (!number_type.*.hexadecimal) {
+                    return error.InvalidExponent;
+                } else if (number_type.*.binary_exponent) {
+                    return error.InvalidHexadecimalExponent;
+                } else if (number_type.*.float_suffix) {
+                    return error.InvalidFloatNumberSuffix;
+                } else {
+                    self.takeChar();
+                    if (self.peekChar() == '-' or self.peekChar() == '+') {
+                        self.takeChar();
+                    }
+                    if (!utils.isDigit(self.peekChar())) {
+                        return error.InvalidExponent;
+                    } else {
+                        while (utils.isDigit(self.peekChar())) {
+                            self.takeChar();
+                        }
+                    }
+                    number_type.*.binary_exponent = true;
                     number_type.*.float = true;
                 }
             },
@@ -753,14 +787,19 @@ test "octal numbers" {
 
 test "hexadecimal numbers" {
     var l = Self.init(
-        \\ 0x1234 0X1234ull 0x1234. 0x.1234
+        \\ 0x1234 0X1234ull 0x1234.p10 0x.1234P10 0x1234p-10 0x1234P+10 0x1234p+10l
+        \\ 0x1234.p10f
     );
 
     const expected_tokens = [_]Token{
         .{ .kind = Token.TokenKind.hexadecimal_number, .literal = "0x1234" },
         .{ .kind = Token.TokenKind.hexadecimal_unsigned_long_long_number, .literal = "0X1234ull" },
-        .{ .kind = Token.TokenKind.hexadecimal_float_number, .literal = "0x1234." },
-        .{ .kind = Token.TokenKind.hexadecimal_float_number, .literal = "0x.1234" },
+        .{ .kind = Token.TokenKind.hexadecimal_float_number, .literal = "0x1234.p10" },
+        .{ .kind = Token.TokenKind.hexadecimal_float_number, .literal = "0x.1234P10" },
+        .{ .kind = Token.TokenKind.hexadecimal_float_number, .literal = "0x1234p-10" },
+        .{ .kind = Token.TokenKind.hexadecimal_float_number, .literal = "0x1234P+10" },
+        .{ .kind = Token.TokenKind.hexadecimal_float_long_number, .literal = "0x1234p+10l" },
+        .{ .kind = Token.TokenKind.hexadecimal_float_suffix_number, .literal = "0x1234.p10f" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
