@@ -267,7 +267,9 @@ pub fn nextToken(self: *Self) !Token {
                 self.takeChar();
                 var number_type: NumberType = .{};
                 try self.takeHexadecimal(&number_type);
-                const kind: Token.TokenKind = if (number_type.unsigned) blk: {
+                const kind: Token.TokenKind = if (number_type.float) blk: {
+                    break :blk Token.TokenKind.hexadecimal_float_number;
+                } else if (number_type.unsigned) blk: {
                     if (number_type.long1 and number_type.long2) {
                         break :blk Token.TokenKind.hexadecimal_unsigned_long_long_number;
                     } else if (number_type.long1) {
@@ -411,7 +413,14 @@ fn takeOctal(self: *Self, number_type: *NumberType) !void {
 }
 
 fn takeHexadecimal(self: *Self, number_type: *NumberType) !void {
-    while (utils.isHexadecimalDigit(self.peekChar())) {
+    while (utils.isHexadecimalDigit(self.peekChar()) or self.peekChar() == '.') {
+        if (self.peekChar() == '.') {
+            if (number_type.*.float) {
+                return error.InvalidNumber;
+            } else {
+                number_type.*.float = true;
+            }
+        }
         self.takeChar();
     }
 
@@ -737,12 +746,13 @@ test "octal numbers" {
 
 test "hexadecimal numbers" {
     var l = Self.init(
-        \\ 0x1234 0X1234ull
+        \\ 0x1234 0X1234ull 0x1234.
     );
 
     const expected_tokens = [_]Token{
         .{ .kind = Token.TokenKind.hexadecimal_number, .literal = "0x1234" },
         .{ .kind = Token.TokenKind.hexadecimal_unsigned_long_long_number, .literal = "0X1234ull" },
+        .{ .kind = Token.TokenKind.hexadecimal_float_number, .literal = "0x1234." },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 
