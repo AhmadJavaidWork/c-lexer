@@ -492,7 +492,6 @@ fn takeCharacterConstant(self: *Self) !void {
                     return error.InvalidUniversalCharacterName;
                 }
             } else {
-                std.debug.print("self.peekchar: {c}\n", .{self.peekChar()});
                 return error.InvalidCharacterConstant;
             }
         }
