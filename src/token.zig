@@ -129,6 +129,7 @@ pub const TokenKind = enum(u16) {
     hexadecimal_float_long_number,
 
     character_constant,
+    string_literal,
 };
 
 kind: TokenKind,
