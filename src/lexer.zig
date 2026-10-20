@@ -312,6 +312,23 @@ pub fn nextToken(self: *Self) !Token {
                 return error.InvalidToken;
             }
         },
+        '\'' => {
+            const start: usize = self.position;
+            self.takeChar();
+            try self.takeCharacterConstant();
+            token = .{ .kind = Token.TokenKind.character_constant, .literal = self.input[start..self.read_position] };
+        },
+        'L' => {
+            if (self.peekChar() == '\'') {
+                const start: usize = self.position;
+                self.takeChar();
+                self.takeChar();
+                try self.takeCharacterConstant();
+                token = .{ .kind = Token.TokenKind.character_constant, .literal = self.input[start..self.read_position] };
+            } else {
+                return error.InvalidToken;
+            }
+        },
         else => {
             if (utils.isLetter(self.ch) or self.ch == '_') {
                 const start: usize = self.position;
@@ -438,6 +455,49 @@ fn takeHexadecimal(self: *Self, number_type: *NumberType) !void {
 
     if (number_type.*.float and !number_type.*.binary_exponent) {
         return error.InvalidHexadecimalFloat;
+    }
+}
+
+fn takeCharacterConstant(self: *Self) !void {
+    while (self.ch != '\'') {
+        if (self.ch == '\\') {
+            if (utils.isSimpleEscapeSeq(self.peekChar())) {
+                self.takeChar();
+            } else if (utils.isOctalDigit(self.peekChar())) {
+                self.takeChar();
+                if (utils.isOctalDigit(self.peekChar())) {
+                    self.takeChar();
+                }
+                if (utils.isOctalDigit(self.peekChar())) {
+                    self.takeChar();
+                }
+            } else if (self.peekChar() == 'x') {
+                self.takeChar();
+                if (utils.isHexadecimalDigit(self.peekChar())) {
+                    self.takeChar();
+                } else {
+                    return error.InvalidHexadecimalEscapeSequence;
+                }
+                if (utils.isHexadecimalDigit(self.peekChar())) {
+                    self.takeChar();
+                }
+            } else if (self.peekChar() == 'u' or self.peekChar() == 'U') {
+                self.takeChar();
+                const start: usize = self.read_position;
+                while (utils.isHexadecimalDigit(self.peekChar())) {
+                    self.takeChar();
+                }
+                const len = self.read_position - start;
+                if (len < 4) {
+                    return error.InvalidUniversalCharacterName;
+                }
+            } else {
+                std.debug.print("self.peekchar: {c}\n", .{self.peekChar()});
+                return error.InvalidCharacterConstant;
+            }
+        }
+
+        self.takeChar();
     }
 }
 
@@ -800,6 +860,33 @@ test "hexadecimal numbers" {
         .{ .kind = Token.TokenKind.hexadecimal_float_number, .literal = "0x1234P+10" },
         .{ .kind = Token.TokenKind.hexadecimal_float_long_number, .literal = "0x1234p+10l" },
         .{ .kind = Token.TokenKind.hexadecimal_float_suffix_number, .literal = "0x1234.p10f" },
+        .{ .kind = Token.TokenKind.eof, .literal = "" },
+    };
+
+    try std.testing.expectEqual(0, l.position);
+    try std.testing.expectEqual(1, l.read_position);
+
+    for (expected_tokens) |et| {
+        const actual_token = try l.nextToken();
+
+        try std.testing.expectEqual(et.kind, actual_token.kind);
+        try std.testing.expectEqualStrings(et.literal, actual_token.literal);
+    }
+
+    try std.testing.expect(l.position > l.input.len);
+    try std.testing.expect(l.read_position > l.input.len);
+    try std.testing.expectEqual(0, l.ch);
+}
+
+test "character constant" {
+    var l = Self.init(
+        \\ ' !\"#$%&\'()*+,-./0123456789:;<=>?@ABCEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\?\a\b\f\n\r\t\v\01234'
+        \\ L'1234'
+    );
+
+    const expected_tokens = [_]Token{
+        .{ .kind = Token.TokenKind.character_constant, .literal = "' !\\\"#$%&\\\'()*+,-./0123456789:;<=>?@ABCEFGHIJKLMNOPQRSTUVWXYZ[\\\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\\?\\a\\b\\f\\n\\r\\t\\v\\01234'" },
+        .{ .kind = Token.TokenKind.character_constant, .literal = "L'1234'" },
         .{ .kind = Token.TokenKind.eof, .literal = "" },
     };
 

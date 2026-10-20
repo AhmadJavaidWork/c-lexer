@@ -17,3 +17,14 @@ pub fn isOctalDigit(ch: u8) bool {
 pub fn isHexadecimalDigit(ch: u8) bool {
     return isDigit(ch) or (ch >= 'a' and ch <= 'f') or (ch >= 'A' and ch <= 'F');
 }
+
+pub fn isInSourceCharacterSet(ch: u8) bool {
+    return (ch >= ' ' and ch <= '&') or (ch >= '(' and ch <= '[') or (ch >= ']' and ch <= '~');
+}
+
+pub fn isSimpleEscapeSeq(ch: u8) bool {
+    return switch (ch) {
+        '\'', '\"', '?', '\\', 'a', 'b', 'f', 'n', 'r', 't', 'v' => true,
+        else => false,
+    };
+}
